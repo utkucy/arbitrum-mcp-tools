@@ -1,6 +1,6 @@
-# Arbitrum MCP (Multi-Chain Protocol) Tools
+# Arbitrum MCP (Model Context Protocol) Tools
 
-This repository contains a set of tools for interacting with the Arbitrum network. Below you'll find documentation for each available tool along with examples.
+This repository contains a set of MCP tools for interacting with the Arbitrum network. Below you'll find documentation for each available tool along with examples.
 
 ## Account and Token Information
 
