@@ -2,7 +2,7 @@ import { Alchemy, Network } from "alchemy-sdk";
 import { formatUnits } from "ethers";
 
 // Initialize Alchemy SDK
-const ALCHEMY_API_KEY = "seo1fGnfF8ptB8mLEEyNUk78t619rUxP";
+const ALCHEMY_API_KEY = "YOUR_ALCHEMY_API_KEY";
 if (!ALCHEMY_API_KEY) {
   throw new Error("ALCHEMY_API_KEY environment variable is required");
 }
