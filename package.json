@@ -1,12 +1,13 @@
 {
   "name": "arbitrum-mcp-tools",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index",
   "type": "module",
   "bin": {
     "arbitrum-mcp-tools": "./build/index.js"
   },
   "scripts": {
+    "watch": "tsc-watch --onSuccess \"chmod 755 build/index.js\"",
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\""
   },
   "files": [
