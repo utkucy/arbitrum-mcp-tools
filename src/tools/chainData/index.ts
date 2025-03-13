@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { formatEther } from "ethers";
-import { alchemy, handleError } from "../common.js";
+import { handleError, alchemy } from "../common.js";
 
 export function registerChainDataTools(server: McpServer) {
   // 1. Block Number
@@ -67,12 +67,18 @@ export function registerChainDataTools(server: McpServer) {
               type: "text",
               text: `Current gas metrics:
           - Base Fee: ${formatEther(
-            feeData.lastBaseFeePerGas?.toString() || "0"
+            feeData.lastBaseFeePerGas
+              ? feeData.lastBaseFeePerGas.toString()
+              : "0"
           )} ETH
           - Max Priority Fee: ${formatEther(
-            feeData.maxPriorityFeePerGas?.toString() || "0"
+            feeData.maxPriorityFeePerGas
+              ? feeData.maxPriorityFeePerGas.toString()
+              : "0"
           )} ETH
-          - Max Fee: ${formatEther(feeData.maxFeePerGas?.toString() || "0")} ETH
+          - Max Fee: ${formatEther(
+            feeData.maxFeePerGas ? feeData.maxFeePerGas.toString() : "0"
+          )} ETH
           - Gas Price: ${formatEther(gasPrice.toString())} ETH`,
             },
           ],

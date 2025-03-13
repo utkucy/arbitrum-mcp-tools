@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { alchemy, handleError } from "../common.js";
+import { handleError, alchemy } from "../common.js";
 
 export function registerDevelopmentTools(server: McpServer) {
   // 1. Transaction Simulation
@@ -80,43 +80,6 @@ export function registerDevelopmentTools(server: McpServer) {
             {
               type: "text",
               text: `Error: ${handleError(error)}`,
-            },
-          ],
-        };
-      }
-    }
-  );
-
-  // 3. Stylus Integration (placeholder, as this seems to be a future feature)
-  server.tool(
-    "stylusIntegration",
-    "Interact with Arbitrum Stylus smart contracts",
-    {
-      contractAddress: z.string().describe("Stylus contract address"),
-      methodName: z.string().describe("Method name to call"),
-      args: z.array(z.any()).optional().describe("Method arguments (optional)"),
-    },
-    async ({ contractAddress, methodName, args }) => {
-      try {
-        // Placeholder for Stylus integration
-        // This would be implemented based on the actual Stylus SDK when available
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Stylus integration is a planned feature.
-Contract: ${contractAddress}
-Method: ${methodName}
-Args: ${args ? JSON.stringify(args) : "None"}`,
-            },
-          ],
-        };
-      } catch (error: unknown) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Stylus operation failed: ${handleError(error)}`,
             },
           ],
         };

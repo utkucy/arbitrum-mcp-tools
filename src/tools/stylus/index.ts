@@ -192,7 +192,12 @@ export function registerStylusTools(server: McpServer) {
     "deployStylusContract",
     "Deploy a Stylus contract to the Arbitrum network",
     {
-      privateKey: z.string().describe("Private key for deployment"),
+      privateKey: z.string().optional().describe("Private key for deployment"),
+      privateKeyPath: z
+        .string()
+        .optional()
+        .describe("Path to private key file"),
+      keystorePath: z.string().optional().describe("Path to keystore file"),
       endpoint: z.string().describe("RPC endpoint URL"),
       path: z
         .string()
@@ -203,13 +208,33 @@ export function registerStylusTools(server: McpServer) {
         .optional()
         .describe("Only estimate gas instead of deploying (optional)"),
     },
-    async ({ privateKey, endpoint, path: projectPath, estimateGas }) => {
+    async ({
+      privateKey,
+      privateKeyPath,
+      keystorePath,
+      endpoint,
+      path: projectPath,
+      estimateGas,
+    }) => {
       try {
-        const args = [
-          `--endpoint=${endpoint}`,
-          `--private-key=${privateKey}`,
-          ...(estimateGas ? ["--estimate-gas"] : []),
-        ];
+        const args = [`--endpoint=${endpoint}`];
+
+        // At least one of privateKey, privateKeyPath, or keystorePath must be provided
+        if (privateKey) {
+          args.push(`--private-key=${privateKey}`);
+        } else if (privateKeyPath) {
+          args.push(`--private-key-path=${privateKeyPath}`);
+        } else if (keystorePath) {
+          args.push(`--keystore-path=${keystorePath}`);
+        } else {
+          throw new Error(
+            "At least one of privateKey, privateKeyPath, or keystorePath must be provided"
+          );
+        }
+
+        if (estimateGas) {
+          args.push("--estimate-gas");
+        }
 
         // We need to be in the project directory
         const output = await executeCargoStylusCommand(
@@ -248,16 +273,20 @@ export function registerStylusTools(server: McpServer) {
     "verifyStylusContract",
     "Verify the deployment of a Stylus contract",
     {
-      contractAddress: z.string().describe("Deployed contract address"),
-      endpoint: z.string().describe("RPC endpoint URL"),
+      deploymentTx: z.string().describe("Deployment transaction hash"),
+      endpoint: z.string().optional().describe("RPC endpoint URL (optional)"),
       path: z
         .string()
         .optional()
         .describe("Path to the Stylus project (optional)"),
     },
-    async ({ contractAddress, endpoint, path: projectPath }) => {
+    async ({ deploymentTx, endpoint, path: projectPath }) => {
       try {
-        const args = [`--address=${contractAddress}`, `--endpoint=${endpoint}`];
+        const args = [`--deployment-tx=${deploymentTx}`];
+
+        if (endpoint) {
+          args.push(`--endpoint=${endpoint}`);
+        }
 
         // We need to be in the project directory
         const output = await executeCargoStylusCommand(
@@ -293,20 +322,41 @@ export function registerStylusTools(server: McpServer) {
     "Activate an already deployed Stylus contract",
     {
       contractAddress: z.string().describe("Deployed contract address"),
-      privateKey: z.string().describe("Private key for activation"),
+      privateKey: z.string().optional().describe("Private key for activation"),
+      privateKeyPath: z
+        .string()
+        .optional()
+        .describe("Path to private key file"),
+      keystorePath: z.string().optional().describe("Path to keystore file"),
       endpoint: z.string().describe("RPC endpoint URL"),
       path: z
         .string()
         .optional()
         .describe("Path to the Stylus project (optional)"),
     },
-    async ({ contractAddress, privateKey, endpoint, path: projectPath }) => {
+    async ({
+      contractAddress,
+      privateKey,
+      privateKeyPath,
+      keystorePath,
+      endpoint,
+      path: projectPath,
+    }) => {
       try {
-        const args = [
-          `--address=${contractAddress}`,
-          `--private-key=${privateKey}`,
-          `--endpoint=${endpoint}`,
-        ];
+        const args = [`--address=${contractAddress}`, `--endpoint=${endpoint}`];
+
+        // At least one of privateKey, privateKeyPath, or keystorePath must be provided
+        if (privateKey) {
+          args.push(`--private-key=${privateKey}`);
+        } else if (privateKeyPath) {
+          args.push(`--private-key-path=${privateKeyPath}`);
+        } else if (keystorePath) {
+          args.push(`--keystore-path=${keystorePath}`);
+        } else {
+          throw new Error(
+            "At least one of privateKey, privateKeyPath, or keystorePath must be provided"
+          );
+        }
 
         // We need to be in the project directory
         const output = await executeCargoStylusCommand(
@@ -341,6 +391,9 @@ export function registerStylusTools(server: McpServer) {
     "cacheStylusContract",
     "Cache a contract using the Stylus CacheManager",
     {
+      subcommand: z
+        .enum(["bid", "status", "suggest-bid", "help"])
+        .describe("Cache subcommand to execute"),
       contractAddress: z.string().describe("Contract address to cache"),
       endpoint: z.string().describe("RPC endpoint URL"),
       path: z
@@ -348,13 +401,13 @@ export function registerStylusTools(server: McpServer) {
         .optional()
         .describe("Path to the Stylus project (optional)"),
     },
-    async ({ contractAddress, endpoint, path: projectPath }) => {
+    async ({ subcommand, contractAddress, endpoint, path: projectPath }) => {
       try {
         const args = [`--address=${contractAddress}`, `--endpoint=${endpoint}`];
 
         // We need to be in the project directory
         const output = await executeCargoStylusCommand(
-          "cache",
+          `cache ${subcommand}`,
           projectPath,
           args
         );
@@ -363,7 +416,7 @@ export function registerStylusTools(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Cache results:\n\n${output}`,
+              text: `Cache ${subcommand} results:\n\n${output}`,
             },
           ],
         };
@@ -385,30 +438,21 @@ export function registerStylusTools(server: McpServer) {
     "generateStylusBindings",
     "Generate C code bindings for a Stylus contract",
     {
-      contractAddress: z.string().describe("Contract address"),
-      endpoint: z.string().describe("RPC endpoint URL"),
-      outputPath: z
+      input: z.string().describe("Input file or contract ABI"),
+      outDir: z
         .string()
-        .optional()
-        .describe("Output path for the generated bindings (optional)"),
+        .describe("Output directory for the generated bindings"),
       path: z
         .string()
         .optional()
         .describe("Path to the Stylus project (optional)"),
     },
-    async ({ contractAddress, endpoint, outputPath, path: projectPath }) => {
+    async ({ input, outDir, path: projectPath }) => {
       try {
-        const args = [
-          `--address=${contractAddress}`,
-          `--endpoint=${endpoint}`,
-          ...(outputPath ? [`--output=${outputPath}`] : []),
-        ];
-
         // We need to be in the project directory
         const output = await executeCargoStylusCommand(
-          "cgen",
-          projectPath,
-          args
+          `cgen ${input} ${outDir}`,
+          projectPath
         );
 
         return {
@@ -438,7 +482,7 @@ export function registerStylusTools(server: McpServer) {
     "Replay a Stylus transaction in GDB debugger",
     {
       txHash: z.string().describe("Transaction hash to replay"),
-      endpoint: z.string().describe("RPC endpoint URL"),
+      endpoint: z.string().optional().describe("RPC endpoint URL (optional)"),
       path: z
         .string()
         .optional()
@@ -446,7 +490,11 @@ export function registerStylusTools(server: McpServer) {
     },
     async ({ txHash, endpoint, path: projectPath }) => {
       try {
-        const args = [`--tx-hash=${txHash}`, `--endpoint=${endpoint}`];
+        const args = [`--tx=${txHash}`];
+
+        if (endpoint) {
+          args.push(`--endpoint=${endpoint}`);
+        }
 
         // We need to be in the project directory
         const output = await executeCargoStylusCommand(
@@ -482,7 +530,7 @@ export function registerStylusTools(server: McpServer) {
     "Trace a Stylus transaction",
     {
       txHash: z.string().describe("Transaction hash to trace"),
-      endpoint: z.string().describe("RPC endpoint URL"),
+      endpoint: z.string().optional().describe("RPC endpoint URL (optional)"),
       path: z
         .string()
         .optional()
@@ -490,7 +538,11 @@ export function registerStylusTools(server: McpServer) {
     },
     async ({ txHash, endpoint, path: projectPath }) => {
       try {
-        const args = [`--tx-hash=${txHash}`, `--endpoint=${endpoint}`];
+        const args = [`--tx=${txHash}`];
+
+        if (endpoint) {
+          args.push(`--endpoint=${endpoint}`);
+        }
 
         // We need to be in the project directory
         const output = await executeCargoStylusCommand(
@@ -529,53 +581,107 @@ export function registerStylusTools(server: McpServer) {
       methodSignature: z
         .string()
         .describe("Method signature (e.g., 'number()(uint256)')"),
-      endpoint: z.string().describe("RPC endpoint URL"),
+      endpoint: z.string().optional().describe("RPC endpoint URL (optional)"),
       privateKey: z
         .string()
         .optional()
         .describe("Private key for authenticated calls"),
+      privateKeyPath: z
+        .string()
+        .optional()
+        .describe("Path to private key file"),
+      keystorePath: z.string().optional().describe("Path to keystore file"),
       value: z
         .string()
         .optional()
         .describe("ETH value to send with call (in wei)"),
+      args: z.array(z.string()).optional().describe("Function arguments"),
+      path: z
+        .string()
+        .optional()
+        .describe("Path to the Stylus project (optional)"),
     },
     async ({
       contractAddress,
       methodSignature,
       endpoint,
       privateKey,
+      privateKeyPath,
+      keystorePath,
       value,
+      args = [],
+      path: projectPath,
     }) => {
       try {
-        // Build the cast call command
-        let command = `cast call`;
+        // Check if we should use cargo stylus call or cast call
+        // First, try to see if we can use cargo stylus call
+        try {
+          // For now, we'll continue using cast call which is more widely supported
+          // In the future, if cargo stylus adds a call command, we can update this
+          let command = `cast call`;
+          const commandArgs = [];
 
-        // Add required arguments
-        command += ` --rpc-url ${endpoint}`;
+          // Add required arguments
+          if (endpoint) {
+            command += ` --rpc-url ${endpoint}`;
+          }
 
-        // Add optional arguments
-        if (privateKey) {
-          command += ` --private-key ${privateKey}`;
+          // Add authentication arguments
+          if (privateKey) {
+            command += ` --private-key ${privateKey}`;
+          } else if (privateKeyPath) {
+            command += ` --private-key-path ${privateKeyPath}`;
+          } else if (keystorePath) {
+            command += ` --keystore-path ${keystorePath}`;
+          }
+
+          if (value) {
+            command += ` --value ${value}`;
+          }
+
+          // Add contract address and method signature
+          command += ` ${contractAddress} "${methodSignature}"`;
+
+          // Add function arguments if provided
+          if (args.length > 0) {
+            command += ` ${args.join(" ")}`;
+          }
+
+          const options: { encoding: BufferEncoding; cwd?: string } = {
+            encoding: "utf8",
+          };
+
+          if (projectPath) {
+            // Check if directory exists
+            if (!fs.existsSync(projectPath)) {
+              fs.mkdirSync(projectPath, { recursive: true });
+            }
+            options.cwd = projectPath;
+          }
+
+          const output = execSync(command, options);
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Contract call results:\n\n${output}`,
+              },
+            ],
+          };
+        } catch (castError: any) {
+          if (castError.stdout) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Contract call results:\n\n${castError.stdout}`,
+                },
+              ],
+            };
+          }
+          throw castError;
         }
-
-        if (value) {
-          command += ` --value ${value}`;
-        }
-
-        // Add contract address and method signature
-        command += ` ${contractAddress} "${methodSignature}"`;
-
-        // Execute the command
-        const output = execSync(command, { encoding: "utf8" });
-
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Contract call results:\n\n${output}`,
-            },
-          ],
-        };
       } catch (error: unknown) {
         return {
           content: [

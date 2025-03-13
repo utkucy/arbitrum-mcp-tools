@@ -169,7 +169,6 @@ export function registerAccountAnalysisTools(server: McpServer) {
           fromAddress: address,
           category: [
             AssetTransfersCategory.EXTERNAL,
-            AssetTransfersCategory.INTERNAL,
             AssetTransfersCategory.ERC20,
             AssetTransfersCategory.ERC721,
             AssetTransfersCategory.ERC1155,
