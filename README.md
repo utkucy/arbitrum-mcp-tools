@@ -1,10 +1,134 @@
-# Arbitrum MCP (Model Context Protocol) Tools
+# Arbitrum MCP Tools
 
-This project provides a set of tools for interacting with the Arbitrum blockchain via MCP, organized by categories according to the feature matrix.
+This project provides a set of tools for interacting with the Arbitrum blockchain via the Model Context Protocol (MCP), enabling AI assistants like Claude and Cursor to perform blockchain operations.
 
-## Project Structure
+## Table of Contents
 
-The codebase is organized into modular components for better maintainability:
+- [Setup Guide](#setup-guide)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Setup for Cursor](#setup-for-cursor)
+  - [Setup for Claude](#setup-for-claude)
+- [Usage](#usage)
+  - [Available Tools](#available-tools)
+  - [Example Usage](#example-usage)
+- [Development Guide](#development-guide)
+  - [Project Structure](#project-structure)
+  - [Adding New Tools](#adding-new-tools)
+  - [Tool Registration](#tool-registration)
+  - [Testing Your Tools](#testing-your-tools)
+
+## Setup Guide
+
+### Prerequisites
+
+- Node.js v16.x or higher
+- npm or yarn
+- Git
+- Alchemy API Key (sign up at https://www.alchemy.com/)
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/arbitrum-mcp-tools.git
+cd arbitrum-mcp-tools
+```
+
+2. Create a `.env` file in the project root with your Alchemy API key:
+
+```bash
+echo "ALCHEMY_API_KEY=your_alchemy_api_key_here" > .env
+```
+
+Replace `your_alchemy_api_key_here` with your actual Alchemy API key. This step is required for the tools to work correctly.
+
+3. Run one of the setup scripts as described in the sections below. The scripts will automatically install dependencies and build the project.
+
+### Setup for Cursor
+
+1. Run the setup script:
+
+```bash
+npm run setup-cursor
+```
+
+2. When prompted, choose your installation method:
+
+   - Option 1: Setup Locally (use current project files)
+   - Option 2: Setup from NPM (install globally)
+
+3. The script will configure Cursor to use the Arbitrum MCP tools.
+
+4. Restart Cursor to apply the changes.
+
+Note: The setup script will automatically use the Alchemy API key from your `.env` file to configure the MCP tools.
+
+### Setup for Claude
+
+1. Install Claude desktop application if you haven't already.
+
+2. Run the setup script:
+
+```bash
+npm run setup-claude
+```
+
+3. When prompted, choose your installation method:
+
+   - Option 1: Setup Locally (use current project files)
+   - Option 2: Setup from NPM (install globally)
+
+4. The script will configure Claude to use the Arbitrum MCP tools and additional servers for terminal and file system access.
+
+5. Restart Claude to apply the changes.
+
+Note: The setup script will automatically use the Alchemy API key from your `.env` file to configure the MCP tools.
+
+## Usage
+
+Once set up, the Arbitrum MCP tools will be available to your AI assistant. The tools are categorized by functionality and can be accessed through natural language.
+
+### Available Tools
+
+The tools are organized into several categories:
+
+1. **Account Analysis** - Tools for checking balances, transactions, and tokens
+2. **Chain Data** - Tools for retrieving blockchain data like blocks and transactions
+3. **Contract Interaction** - Tools for interacting with smart contracts
+4. **Cross-Chain** - Tools for cross-chain operations
+5. **Development** - Tools for developers
+6. **Batch Operations** - Tools for performing operations on multiple addresses
+7. **Stylus** - Tools for Stylus development and interaction
+
+### Example Usage
+
+When using Claude or Cursor, you can simply ask for blockchain data using natural language. The AI will determine which tool to use.
+
+Examples:
+
+- "What's the ETH balance of 0x123...?"
+- "Check NFTs owned by 0xabc..."
+- "How much gas is needed to transfer 1 ETH?"
+- "Show me the latest block on Arbitrum"
+- "Decode this transaction input data: 0x..."
+
+Each tool handles specific parameters. For example, to get an account balance:
+
+```
+Input: "What's the balance of 0x742d35Cc6634C0532925a3b844Bc454e4438f44e?"
+
+The AI uses: getAccountBalance({ address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" })
+
+Output: "The account has 1.23 ETH"
+```
+
+## Development Guide
+
+### Project Structure
+
+The codebase is organized into modular components:
 
 ```
 src/
@@ -21,487 +145,78 @@ src/
 │   └── stylus/             # Stylus development tools
 ```
 
+### Adding New Tools
+
+1. Create a new file in the appropriate category folder or create a new category folder if needed.
+
+2. Implement your tool following this template:
+
+```typescript
+import { AlchemyProvider } from "ethers";
+import { getProvider } from "../common";
+
+export async function myNewTool(params: { param1: string; param2: string }) {
+  const { param1, param2 } = params;
+  const provider = getProvider();
+
+  // Your tool logic here
+
+  return result;
+}
+```
+
+### Tool Registration
+
+1. Register your tool in the category's index.ts file:
+
+```typescript
+// src/tools/myCategory/index.ts
+export { myNewTool } from "./myNewTool";
+```
+
+2. Register the category in the main tools index file if it's a new category:
+
+```typescript
+// src/tools/index.ts
+import * as myCategory from "./myCategory";
+
+// Add your category to the exported tools
+export const tools = {
+  // ... existing categories
+  myCategory,
+};
+```
+
+3. Update the MCPServer configuration in `src/index.ts` if needed.
+
+### Testing Your Tools
+
+1. Build the project after making changes:
+
+```bash
+npm run build
+```
+
+2. Test your tools by:
+
+   a. Setting up a test environment:
+
+   ```bash
+   npm run setup-cursor # or setup-claude
+   ```
+
+   b. Using your AI assistant to interact with the tools.
+
+3. If you're making significant changes, consider updating the setup scripts to ensure they handle your new tools correctly.
+
 ## Feature Matrix
 
-The tools are categorized according to the following feature matrix:
+For a detailed list of all available tools and their capabilities, see the [Feature Matrix](./FEATURES.md).
 
-1. **accountAnalysis**
+## Contributing
 
-   - `getAccountBalance` - Get native token balance
-   - `getTokenBalances` - Get ERC-20 token balances
-   - `getNfts` - Get NFTs owned by an address
-   - `getTransactionHistory` - Get transaction history
-   - `getNftMetadata` - Get metadata for a specific NFT
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-2. **chainData**
+## License
 
-   - `getBlockNumber` - Get latest block number
-   - `getBlock` - Get block details
-   - `getTransaction` - Get transaction details
-   - `getTransactionReceipt` - Get transaction receipt
-   - `getGasParameters` - Get detailed gas price metrics
-
-3. **contractInteraction**
-
-   - `getContractCode` - Get contract bytecode
-   - `decodeCalldata` - Decode transaction input data
-   - `getContractEvents` - Query contract events
-   - `getTokenAllowance` - Check ERC-20 token allowances
-
-4. **crossChain**
-
-   - `getCrossChainMessageStatus` - Check L1->L2 message status
-
-5. **development**
-
-   - `simulateTransaction` - Simulate transactions
-   - `estimateGas` - Estimate gas usage
-   - `getGasPrice` - Get current gas price
-
-6. **batchOperations**
-
-   - `getBatchBalances` - Get balances for multiple addresses
-
-7. **stylus**
-   - `createStylusProject` - Create a new Stylus project
-   - `initStylusProject` - Initialize a Stylus project
-   - `exportStylusAbi` - Export a Solidity ABI
-   - `checkStylusContract` - Check a contract for validity
-   - `deployStylusContract` - Deploy a contract
-   - `verifyStylusContract` - Verify a deployed contract
-   - `activateStylusContract` - Activate a deployed contract
-   - `cacheStylusContract` - Cache a contract
-   - `generateStylusBindings` - Generate C code bindings
-   - `replayStylusTransaction` - Replay a transaction in GDB
-   - `traceStylusTransaction` - Trace a transaction
-   - `callStylusContract` - Call a method on a deployed Stylus contract
-
-## Getting Started
-
-1. Install dependencies:
-
-   ```
-   npm install
-   ```
-
-2. Run the server:
-   ```
-   npm start
-   ```
-
-## Development
-
-To add new tools, create them in the appropriate category folder and register them in the category's index.ts file.
-
-## Tool Details
-
-### Account and Token Information
-
-#### 1. Get Native Token Balance
-
-Retrieves the native ETH balance for an Arbitrum address.
-
-```javascript
-Example Response for 0xF977814e90dA44bFA03b6295A0616a897441aceC:
-Balance: 264234.14 ETH
-```
-
-#### 2. Get Token Balances
-
-Retrieves all token balances (ERC20) for an Arbitrum address.
-
-```javascript
-Example:
-Address: 0xYourAddress
-Response:
-Token balances for 0xYourAddress:
-USDC (USDC): 1000.00
-Arbitrum (ARB): 500.00
-```
-
-#### 3. Get NFTs
-
-Retrieves all NFTs owned by an Arbitrum address.
-
-```javascript
-Example Response:
-NFTs owned by 0xYourAddress:
-
-Collection: The Nebula
-Token ID: 15
-Type: ERC721
----
-Collection: KyberDAO KIP Badge
-Token ID: 34081
-Type: ERC1155
----
-```
-
-#### 4. Get Transaction History
-
-Retrieves transaction history for an Arbitrum address.
-
-```javascript
-Example:
-Transaction history for 0xYourAddress:
-
-Type: EXTERNAL
-From: 0xYourAddress
-To: 0xDestinationAddress
-Value: 1.5 ETH
-Hash: 0xTransactionHash
----
-```
-
-#### 5. Get NFT Metadata
-
-Retrieves metadata for a specific NFT.
-
-```javascript
-Example:
-NFT Metadata:
-{
-  "contract": {
-    "address": "0xContractAddress"
-  },
-  "tokenId": "123",
-  "name": "CryptoPunk #123",
-  "description": "A unique digital collectible",
-  "image": "https://ipfs.io/ipfs/QmHash",
-  "attributes": [...]
-}
-```
-
-### Block and Transaction Information
-
-#### 6. Get Latest Block Number
-
-Retrieves the current block number on Arbitrum.
-
-```javascript
-Example Response:
-Latest block number: 308831599
-```
-
-#### 7. Get Block Details
-
-Retrieves detailed information about a specific block.
-
-```javascript
-Example:
-Block data for block 308831599:
-Timestamp: 2023-10-15T14:23:45Z
-Number of transactions: 150
-Hash: 0xBlockHash
-Gas used: 15000000
-```
-
-#### 8. Get Transaction Details
-
-Retrieves detailed information about a specific transaction.
-
-```javascript
-Example:
-Transaction data:
-From: 0xSenderAddress
-To: 0xRecipientAddress
-Value: 1.5 ETH
-Gas used: 21000
-Status: Confirmed
-```
-
-#### 9. Get Transaction Receipt
-
-Retrieves the receipt for a completed transaction.
-
-```javascript
-Example:
-Transaction receipt:
-Status: Success
-Block number: 308831599
-Gas used: 21000
-Logs: [...]
-```
-
-### Gas and Network
-
-#### 10. Get Gas Price
-
-Retrieves the current gas price on Arbitrum.
-
-```javascript
-Example:
-Current gas price: 0.1 Gwei
-```
-
-#### 11. Get Detailed Gas Parameters
-
-Retrieves detailed gas price metrics for Arbitrum.
-
-```javascript
-Example:
-Gas parameters:
-Base fee: 0.05 Gwei
-Max priority fee: 0.2 Gwei
-Max fee: 0.25 Gwei
-```
-
-#### 12. Estimate Gas
-
-Estimates gas usage for a transaction.
-
-```javascript
-Example:
-Estimated gas: 21000 units
-```
-
-### Contract Interaction
-
-#### 13. Get Contract Code
-
-Retrieves the bytecode of a deployed contract.
-
-```javascript
-Example:
-Contract bytecode: 0x608060405234801561001057600080fd5b50...
-```
-
-#### 14. Get Token Allowance
-
-Checks ERC20 token allowance for an owner and spender.
-
-```javascript
-Example:
-Token allowance: 1000 USDC
-```
-
-#### 15. Decode Transaction Input Data
-
-Decodes transaction input data using contract ABIs.
-
-```javascript
-Example:
-Decoded input:
-Function: transfer(address,uint256)
-Parameters:
-- to: 0xRecipientAddress
-- amount: 1000000000000000000 (1.0 tokens)
-```
-
-#### 16. Query Contract Events
-
-Retrieves events emitted by a contract.
-
-```javascript
-Example:
-Events from 0xContractAddress:
-Event: Transfer
-From: 0xSenderAddress
-To: 0xRecipientAddress
-Value: 1.0 tokens
-Block: 308831599
-```
-
-### Cross-Chain Operations
-
-#### 17. Check L1->L2 Message Status
-
-Checks the status of a message sent from Ethereum L1 to Arbitrum L2.
-
-```javascript
-Example:
-Message status: Confirmed
-Initiated at: Block 17500000 (L1)
-Confirmed at: Block 308831599 (L2)
-```
-
-### Batch Operations
-
-#### 18. Get Batch Balances
-
-Retrieves balances for multiple addresses in a single call.
-
-```javascript
-Example:
-Balances:
-0xAddress1: 1.5 ETH
-0xAddress2: 0.75 ETH
-0xAddress3: 2.25 ETH
-```
-
-### Development
-
-#### 19. Simulate Transaction
-
-Simulates the execution of a transaction.
-
-```javascript
-Example:
-Simulation result:
-Status: Success
-Gas used: 21000
-Return value: 0x
-```
-
-### Stylus Development
-
-#### 20. Create Stylus Project
-
-Creates a new Cargo Stylus project.
-
-```javascript
-Example:
-Project created successfully:
-Created binary (application) `my-stylus-project` package
-Generated Counter contract template
-```
-
-#### 21. Initialize Stylus Project
-
-Initializes a Stylus project in the current directory.
-
-```javascript
-Example:
-Project initialized successfully:
-Initialized package in current directory
-Generated Counter contract template
-```
-
-#### 22. Export Stylus ABI
-
-Exports a Solidity ABI for a Stylus contract.
-
-```javascript
-Example:
-ABI exported successfully:
-
-/**
- * This file was automatically generated by Stylus and represents a Rust program.
- * For more information, please see [The Stylus SDK](https://github.com/OffchainLabs/stylus-sdk-rs).
- */
-
-// SPDX-License-Identifier: MIT-OR-APACHE-2.0
-pragma solidity ^0.8.23;
-
-interface ICounter {
-    function number() external view returns (uint256);
-    function setNumber(uint256 new_number) external;
-    function increment() external;
-}
-```
-
-#### 23. Check Stylus Contract
-
-Checks if a Stylus contract is valid for deployment.
-
-```javascript
-Example:
-Contract check results:
-Finished release [optimized] target(s) in 1.88s
-Reading WASM file at target/wasm32-unknown-unknown/release/my-project.wasm
-Compressed WASM size: 3 KB
-Program succeeded Stylus onchain activation checks with Stylus version: 1
-```
-
-#### 24. Deploy Stylus Contract
-
-Deploys a Stylus contract to the Arbitrum network.
-
-```javascript
-Example:
-Deployment results:
-deployed code at address: 0x33f54de59419570a9442e788f5dd5cf635b3c7ac
-deployment tx hash: 0xa55efc05c45efc63647dff5cc37ad328a47ba5555009d92ad4e297bf4864de36
-wasm already activated!
-```
-
-#### 25. Verify Stylus Contract Deployment
-
-Verifies the deployment of a Stylus contract.
-
-```javascript
-Example:
-Verification results:
-Contract at 0x33f54de59419570a9442e788f5dd5cf635b3c7ac verified successfully
-```
-
-#### 26. Activate Stylus Contract
-
-Activates an already deployed Stylus contract.
-
-```javascript
-Example:
-Activation results:
-Contract at 0x33f54de59419570a9442e788f5dd5cf635b3c7ac activated successfully
-activation tx hash: 0xb66efc05c45efc63647dff5cc37ad328a47ba5555009d92ad4e297bf4864de47
-```
-
-#### 27. Cache Stylus Contract
-
-Caches a contract using the Stylus CacheManager.
-
-```javascript
-Example:
-Cache results:
-Contract 0x33f54de59419570a9442e788f5dd5cf635b3c7ac cached successfully
-```
-
-#### 28. Generate C Code Bindings
-
-Generates C code bindings for a Stylus contract.
-
-```javascript
-Example:
-C bindings generation results:
-Generated C bindings at ./bindings/counter.h
-Generated C bindings at ./bindings/counter.c
-```
-
-#### 29. Replay Stylus Transaction
-
-Replays a Stylus transaction in GDB debugger.
-
-```javascript
-Example:
-Transaction replay results:
-Starting GDB session...
-Loaded program state at transaction 0xTransactionHash
-(gdb)
-```
-
-#### 30. Trace Stylus Transaction
-
-Traces a Stylus transaction.
-
-```javascript
-Example:
-Transaction trace results:
-Function: increment()
-Gas used: 97334
-```
-
-#### 31. Call Stylus Contract
-
-Calls a method on a deployed Stylus smart contract using Foundry's Cast tool.
-
-```javascript
-Example:
-// Read-only call to get counter value
-Contract call results:
-0x0000000000000000000000000000000000000000000000000000000000000000
-
-// Example with method signature, endpoint and contract address
-callStylusContract({
-  contractAddress: "0x33f54de59419570a9442e788f5dd5cf635b3c7ac",
-  methodSignature: "number()(uint256)",
-  endpoint: "http://localhost:8547"
-})
-
-// Example with private key for authenticated calls
-callStylusContract({
-  contractAddress: "0x33f54de59419570a9442e788f5dd5cf635b3c7ac",
-  methodSignature: "increment()",
-  endpoint: "http://localhost:8547",
-  privateKey: "0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659"
-})
-```
+This project is licensed under the MIT License - see the LICENSE file for details.
