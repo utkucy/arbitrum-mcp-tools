@@ -3,6 +3,8 @@ import { join } from "path";
 import { readFileSync, writeFileSync, existsSync, appendFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { createInterface } from "readline";
+import "dotenv/config";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -80,6 +82,86 @@ async function ensurePackageInstalled(packageName) {
   }
 }
 
+async function setupLocal(config, nodePath) {
+  // Use the local project path for the index.js file
+  const packagePath = join(__dirname, "build", "src", "index.js");
+  logToFile(`Using local project path: ${packagePath}`);
+
+  // Configure the Arbitrum MCP tools server
+  config.mcpServers.arbitrumMCPTools = {
+    command: nodePath,
+    args: [packagePath],
+    env: {
+      PATH: `${dirname(nodePath)}:${process.env.PATH}`,
+      NODE_PATH: join(dirname(nodePath), "..", "lib", "node_modules"),
+      ALCHEMY_API_KEY: process.env.ALCHEMY_API_KEY || "YOUR_ALCHEMY_API_KEY",
+    },
+  };
+
+  return config;
+}
+
+async function setupNpm(config, nodePath) {
+  // Check if our package is already installed globally
+  const packageName = "arbitrum-mcp-tools";
+  await ensurePackageInstalled(packageName);
+
+  // Use npm to find the global installation path of our package
+  const { execSync } = await import("child_process");
+  let packagePath;
+  try {
+    packagePath = execSync(`npm root -g`, { encoding: "utf8" }).trim();
+    packagePath = join(packagePath, packageName, "build", "src", "index.js");
+    logToFile(`Found package at: ${packagePath}`);
+  } catch (error) {
+    logToFile(
+      `Error finding package path: ${error.message}. Using fallback path.`,
+      true
+    );
+    // Fallback to using the current node path structure
+    packagePath = join(
+      dirname(nodePath),
+      "..",
+      "lib",
+      "node_modules",
+      packageName,
+      "build",
+      "src",
+      "index.js"
+    );
+  }
+
+  // Configure the Arbitrum MCP tools server
+  config.mcpServers.arbitrumMCPTools = {
+    command: nodePath,
+    args: [packagePath],
+    env: {
+      PATH: `${dirname(nodePath)}:${process.env.PATH}`,
+      NODE_PATH: join(dirname(nodePath), "..", "lib", "node_modules"),
+      ALCHEMY_API_KEY: process.env.ALCHEMY_API_KEY || "YOUR_ALCHEMY_API_KEY",
+    },
+  };
+
+  return config;
+}
+
+async function promptUser() {
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.question(
+      "Choose setup type:\n1. Setup Locally (use current project files)\n2. Setup from NPM (install globally)\nEnter your choice (1 or 2): ",
+      (answer) => {
+        rl.close();
+        resolve(answer.trim());
+      }
+    );
+  });
+}
+
 // Check if config file exists and create default if not
 if (!existsSync(claudeConfigPath)) {
   logToFile(`Claude config file not found at: ${claudeConfigPath}`);
@@ -126,16 +208,17 @@ if (!existsSync(claudeConfigPath)) {
       config.mcpServers = {};
     }
 
-    // Configure the Arbitrum MCP tools server
-    config.mcpServers.arbitrumMCPTools = {
-      command: nodePath,
-      args: [join(__dirname, "build", "index.js")],
-      env: {
-        PATH: `${dirname(nodePath)}:${process.env.PATH}`,
-        NODE_PATH: join(dirname(nodePath), "..", "lib", "node_modules"),
-        ALCHEMY_API_KEY: process.env.ALCHEMY_API_KEY || "YOUR_ALCHEMY_API_KEY",
-      },
-    };
+    // Prompt user for setup type
+    const choice = await promptUser();
+
+    if (choice === "1") {
+      config = await setupLocal(config, nodePath);
+    } else if (choice === "2") {
+      config = await setupNpm(config, nodePath);
+    } else {
+      logToFile(`Invalid choice: ${choice}. Defaulting to local setup.`, true);
+      config = await setupLocal(config, nodePath);
+    }
 
     // Ensure desktop-commander is installed
     const desktopCommanderPackage = "@wonderwhy-er/desktop-commander";

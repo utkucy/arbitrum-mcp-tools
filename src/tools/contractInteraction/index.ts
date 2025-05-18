@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ethers, Interface } from "ethers";
-import { alchemy, handleError } from "../common.js";
+import { handleError } from "../common.js";
+import { alchemy } from "../../index.js";
 
 export function registerContractInteractionTools(server: McpServer) {
   // 1. Code Analysis
