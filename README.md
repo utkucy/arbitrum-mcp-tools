@@ -38,12 +38,12 @@ git clone https://github.com/utkucy/arbitrum-mcp-tools.git
 cd arbitrum-mcp-tools
 ```
 
-2. Create a `.env` file in the project root with your Alchemy API key:
+2. Create a `.env` file in the project root with your Alchemy and Arbiscan API key:
 
-```bash
-echo "ALCHEMY_API_KEY=your_alchemy_api_key_here" > .env
-echo "ARBISCAN_API_KEY=your_arbiscan_api_key_here" >> .env
-```
+````bash
+ALCHEMY_API_KEY=your_alchemy_api_key_here
+ARBISCAN_API_KEY=your_arbiscan_api_key_here
+``
 
 Replace `your_alchemy_api_key_here` with your actual Alchemy API key, and `your_arbiscan_api_key_here` with your Arbiscan API key. The `ALCHEMY_API_KEY` is required for most tools to work correctly. The `ARBISCAN_API_KEY` is used by the `decodeCalldata` tool to fetch contract ABIs from Arbiscan; if not provided, this specific tool will return an error prompting you to set the key.
 
@@ -55,7 +55,7 @@ Replace `your_alchemy_api_key_here` with your actual Alchemy API key, and `your_
 
 ```bash
 npm run setup-cursor
-```
+````
 
 2. When prompted, choose your installation method:
 

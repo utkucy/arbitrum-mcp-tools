@@ -10,13 +10,13 @@ The tools are categorized according to the following feature matrix:
 
 Tools for analyzing accounts, balances, and tokens.
 
-| Tool                    | Description                             | Parameters                                                   |
-| ----------------------- | --------------------------------------- | ------------------------------------------------------------ |
-| `getAccountBalance`     | Get native token balance for an address | `address`: Ethereum address to check balance for             |
-| `getTokenBalances`      | Get all token balances for an address   | `address`: Ethereum address to check token balances for      |
-| `getNfts`               | Get NFTs owned by an address            | `address`: Ethereum address to check NFTs for                |
-| `getTransactionHistory` | Get transaction history for an address  | `address`: Ethereum address to check transactions for        |
-| `getNftMetadata`        | Get metadata for a specific NFT         | `contractAddress`: NFT contract address, `tokenId`: Token ID |
+| Tool                    | Description                                                                                               | Parameters                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ----------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `getAccountBalance`     | Get native token balance for an Arbitrum address                                                          | `address`: Ethereum address to check balance for, `blockTag`: The optional block number, hash, or tag (e.g., 'latest', 'pending', 'safe', 'finalized', 'earliest') to get the balance for. Defaults to 'latest' if unspecified.                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `getTokenBalances`      | Get ERC-20 token balances for an Arbitrum address, optionally filtered by a list of contract addresses.   | `address`: The owner address or ENS name to get the token balances for, `contractAddresses`: Optional list of contract addresses to filter by.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `getNfts`               | Get NFTs owned by an address, with options for filtering, pagination, and ordering.                       | `owner`: The address of the owner. `options`: (Optional) { `contractAddresses`: Optional list of contract addresses to filter by (Limit 45), `omitMetadata`: Optional boolean to omit NFT metadata (default: false), `excludeFilters`: Optional list of filters (SPAM, AIRDROPS) to exclude, `includeFilters`: Optional list of filters (SPAM, AIRDROPS) to include, `pageSize`: Max NFTs to return (API default 100, max 100), `tokenUriTimeoutInMs`: Timeout for metadata fetch, `orderBy`: Order by 'TRANSFERTIME', `pageKey`: Optional page key for pagination }                                                                                 |
+| `getTransactionHistory` | Get transaction history for an Arbitrum address, with options for filtering and pagination.               | `address`: The address to check transactions for (used as fromAddress). `options`: (Optional) { `fromBlock`: Start block ("0x0" default), `toBlock`: End block ("latest" default), `toAddress`: Recipient filter, `contractAddresses`: Contract filter (ERC20/721/1155), `excludeZeroValue`: Exclude zero value transfers (true default), `order`: 'asc'/'desc' by block number ('asc' default), `category`: Array of categories (EXTERNAL, INTERNAL, ERC20, ERC721, ERC1155, SPECIALNFT), `maxCount`: Max results per page (1000 default), `withMetadata`: Include transfer metadata (false default), `pageKey`: Optional page key for pagination } |
+| `getNftMetadata`        | Get metadata for an NFT given its contract address and token ID, with options for caching and token type. | `contractAddress`: NFT contract address, `tokenId`: Token ID. `options`: (Optional) { `tokenType`: Specify token type (ERC721, ERC1155, UNKNOWN), `tokenUriTimeoutInMs`: Timeout for metadata fetch, `refreshCache`: Refresh metadata before response (false default) }                                                                                                                                                                                                                                                                                                                                                                              |
 
 ### Example Responses
 
@@ -53,13 +53,14 @@ Type: ERC1155
 
 Tools for retrieving blockchain data.
 
-| Tool                    | Description                    | Parameters                                        |
-| ----------------------- | ------------------------------ | ------------------------------------------------- |
-| `getBlockNumber`        | Get latest block number        | None                                              |
-| `getBlock`              | Get block details              | `block`: Block number (as a string) or block hash |
-| `getTransaction`        | Get transaction details        | `txHash`: Transaction hash                        |
-| `getTransactionReceipt` | Get transaction receipt        | `txHash`: Transaction hash                        |
-| `getGasParameters`      | Get detailed gas price metrics | None                                              |
+| Tool                    | Description                                              | Parameters                                                                                                     |
+| ----------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `getBlockNumber`        | Get the latest block number on Arbitrum                  | (No parameters)                                                                                                |
+| `getBlock`              | Get details of a block by number or hash                 | `block`: Block number (as a string), block hash, or one of the following tags: 'latest', 'pending', 'earliest' |
+| `getTransaction`        | Get details of a transaction by hash                     | `txHash`: Transaction hash                                                                                     |
+| `getTransactionReceipt` | Get the transaction receipt for a given transaction hash | `txHash`: Transaction hash                                                                                     |
+| `getGasParameters`      | Get detailed Arbitrum gas price metrics                  | (No parameters)                                                                                                |
+| `getGasPrice`           | Get the current gas price on Arbitrum                    | (No parameters)                                                                                                |
 
 ### Example Responses
 
@@ -83,12 +84,12 @@ Gas used: 15000000
 
 Tools for interacting with smart contracts.
 
-| Tool                | Description                   | Parameters                                                                                                                                         |
-| ------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `getContractCode`   | Get contract bytecode         | `contractAddress`: Contract address                                                                                                                |
-| `decodeCalldata`    | Decode transaction input data | `contractAddress`: Contract address, `data`: Transaction input data                                                                                |
-| `getContractEvents` | Query contract events         | `contractAddress`: Contract address, `eventSignature`: Event signature, `fromBlock`: Starting block (optional), `toBlock`: Ending block (optional) |
-| `getTokenAllowance` | Check ERC-20 token allowances | `tokenAddress`: ERC-20 token contract address, `owner`: Owner address, `spender`: Spender address                                                  |
+| Tool                | Description                                                                                | Parameters                                                                                                                                                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `getContractCode`   | Retrieve the bytecode of a contract at a specific address and optionally at a given block. | `addressOrName`: The address or ENS name of the account to get the code for. `blockTag`: The optional block number, hash, or tag (e.g., 'latest', 'pending', 'safe', 'finalized', 'earliest') to get the code for. Defaults to 'latest' if unspecified. |
+| `decodeCalldata`    | Decode transaction input data using Arbitrum contract ABIs                                 | `contractAddress`: Contract address, `data`: Transaction input data                                                                                                                                                                                     |
+| `getContractEvents` | Query specific events from Arbitrum contracts                                              | `contractAddress`: Contract address, `eventSignature`: Event signature, `fromBlock`: Starting block number (optional), `toBlock`: Ending block number (optional)                                                                                        |
+| `getTokenAllowance` | Get ERC-20 token allowance for an owner and spender                                        | `tokenAddress`: ERC-20 token contract address, `owner`: Owner address, `spender`: Spender address                                                                                                                                                       |
 
 ### Example Responses
 
@@ -106,37 +107,32 @@ Parameters:
 
 Tools for cross-chain operations.
 
-| Tool                         | Description                 | Parameters                                             |
-| ---------------------------- | --------------------------- | ------------------------------------------------------ |
-| `getCrossChainMessageStatus` | Check L1->L2 message status | `l1TxHash`: L1 transaction hash that initiated message |
+| Tool                 | Description                                                                                    | Parameters                                            |
+| -------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `getTransactionLogs` | Fetch and comment on all logs from a given transaction hash (L1 or L2), decoding known events. | `txHash`: Transaction hash (0x…66) on either L1 or L2 |
 
 ### Example Responses
 
-#### Get Cross-Chain Message Status
+#### Get Transaction Logs
 
 ```
-Message status: Confirmed
-Initiated at: Block 17500000 (L1)
-Confirmed at: Block 308831599 (L2)
+Logs for L2 (Arbitrum) TX 0xYourTxHash:
+
+🔖 MessageDelivered #1 → messageIndex=123, beforeInboxAcc=0xabc..., inbox=0xdef..., kind=0, sender=0x123..., messageDataHash=0x456..., baseFeeL1=1000, timestamp=1678886400
+
+🔖 Transfer #2 → from=0xsender..., to=0xreceiver..., value=1000000000000000000
 ```
 
 ## 5. Development
 
 Tools for developers.
 
-| Tool                  | Description           | Parameters                                                                                               |
-| --------------------- | --------------------- | -------------------------------------------------------------------------------------------------------- |
-| `simulateTransaction` | Simulate transactions | `from`: From address, `to`: To address, `data`: Transaction calldata, `value`: Value in wei (optional)   |
-| `estimateGas`         | Estimate gas usage    | `to`: Destination address, `data`: Optional transaction data, `value`: Optional value in wei as a string |
-| `getGasPrice`         | Get current gas price | None                                                                                                     |
+| Tool                  | Description                                       | Parameters                                                                                                                                                                                                                                                                                                                                                                                                       |
+| --------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `simulateTransaction` | Simulate Arbitrum transaction with state override | `from`: From address, `to`: To address, `data`: Transaction calldata, `value`: Value in wei (optional), `gas`: Optional gas limit as a hex string (e.g., '0x5208'), `gasPrice`: Optional gas price as a hex string (e.g., '0x4A817C800'), `blockIdentifier`: Optional block identifier (number, hash, or tag like 'latest') to simulate the transaction in                                                       |
+| `estimateGas`         | Estimate gas usage for a transaction              | `to`: Destination address, `from`: Optional sender address, `data`: Optional transaction data (hex string), `value`: Optional value in wei as a string (e.g., '1000000000000000000'), `gasPrice`: Optional gas price in wei as a string (e.g., '20000000000'), `nonce`: Optional transaction nonce as a string (e.g., '0', '1'), `type`: Optional EIP-2718 transaction type (e.g., 0 for legacy, 2 for EIP-1559) |
 
 ### Example Responses
-
-#### Get Gas Price
-
-```
-Current gas price: 0.1 Gwei
-```
 
 #### Estimate Gas
 
@@ -148,10 +144,10 @@ Estimated gas: 21000 units
 
 Tools for performing operations on multiple addresses.
 
-| Tool                   | Description                                      | Parameters                                                                                                                                                         |
-| ---------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `getBatchBalances`     | Get balances for multiple addresses              | `addresses`: Array of addresses to check, `tokenAddress`: ERC-20 token address (optional)                                                                          |
-| `multiAddressAnalysis` | Compare tokens and transactions across addresses | `addresses`: Array of addresses to analyze, `includeNfts`: Include NFTs in analysis (optional), `includeTransactions`: Include transactions in analysis (optional) |
+| Tool                   | Description                                                       | Parameters                                                                                                                                                                         |
+| ---------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `getBatchBalances`     | Get balances for multiple addresses in single call                | `addresses`: Array of addresses to check, `tokenAddress`: ERC-20 token address (optional)                                                                                          |
+| `multiAddressAnalysis` | Compare token holdings and transactions across multiple addresses | `addresses`: Array of addresses to analyze, `includeNfts`: Include NFTs in analysis (optional boolean), `includeTransactions`: Include transactions in analysis (optional boolean) |
 
 ### Example Responses
 
@@ -168,20 +164,19 @@ Balances:
 
 Tools for Stylus development and interaction.
 
-| Tool                      | Description                  | Parameters                                                                                                                                                                                                     |
-| ------------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `createStylusProject`     | Create a new Stylus project  | `projectName`: Project name, `path`: Path to create the project (optional)                                                                                                                                     |
-| `initStylusProject`       | Initialize a Stylus project  | `path`: Path to initialize the project (optional)                                                                                                                                                              |
-| `exportStylusAbi`         | Export a Solidity ABI        | `path`: Path to the Stylus project (optional)                                                                                                                                                                  |
-| `checkStylusContract`     | Check contract validity      | `path`: Path to the Stylus project (optional)                                                                                                                                                                  |
-| `deployStylusContract`    | Deploy a contract            | `endpoint`: RPC endpoint URL, `privateKey`/`privateKeyPath`/`keystorePath`: Authentication, `path`: Project path (optional), `estimateGas`: Only estimate gas (optional)                                       |
-| `verifyStylusContract`    | Verify a deployed contract   | `deploymentTx`: Deployment transaction hash, `endpoint`: RPC endpoint URL (optional), `path`: Project path (optional)                                                                                          |
-| `activateStylusContract`  | Activate a deployed contract | `contractAddress`: Deployed contract address, `endpoint`: RPC endpoint URL, Authentication params, `path`: Project path (optional)                                                                             |
-| `cacheStylusContract`     | Cache a contract             | `subcommand`: Cache subcommand, `contractAddress`: Contract address, `endpoint`: RPC endpoint URL, `path`: Project path (optional)                                                                             |
-| `generateStylusBindings`  | Generate C code bindings     | `input`: Input file or contract ABI, `outDir`: Output directory, `path`: Project path (optional)                                                                                                               |
-| `replayStylusTransaction` | Replay a transaction in GDB  | `txHash`: Transaction hash to replay, `endpoint`: RPC endpoint URL (optional), `path`: Project path (optional)                                                                                                 |
-| `traceStylusTransaction`  | Trace a transaction          | `txHash`: Transaction hash to trace, `endpoint`: RPC endpoint URL (optional), `path`: Project path (optional)                                                                                                  |
-| `callStylusContract`      | Call a method on a contract  | `contractAddress`: Contract address, `methodSignature`: Method signature, Authentication params, `args`: Function arguments (optional), `value`: ETH value (optional), `endpoint`: RPC endpoint URL (optional) |
+| Tool                      | Description                                          | Parameters                                                                                                                                                                                                                                                                                                          |
+| ------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `createStylusProject`     | Create a new Cargo Stylus project                    | `projectName`: Project name, `path`: Path to create the project (optional)                                                                                                                                                                                                                                          |
+| `initStylusProject`       | Initialize a Stylus project in the current directory | `path`: Path to initialize the project (optional)                                                                                                                                                                                                                                                                   |
+| `exportStylusAbi`         | Export a Solidity ABI for a Stylus contract          | `path`: Path to the Stylus project (optional)                                                                                                                                                                                                                                                                       |
+| `checkStylusContract`     | Check if a Stylus contract is valid for deployment   | `path`: Path to the Stylus project (optional)                                                                                                                                                                                                                                                                       |
+| `deployStylusContract`    | Deploy a Stylus contract to the Arbitrum network     | `privateKey`: Private key for deployment (optional), `privateKeyPath`: Path to private key file (optional), `keystorePath`: Path to keystore file (optional), `endpoint`: RPC endpoint URL, `path`: Path to the Stylus project (optional), `estimateGas`: Only estimate gas instead of deploying (optional boolean) |
+| `verifyStylusContract`    | Verify the deployment of a Stylus contract           | `deploymentTx`: Deployment transaction hash, `endpoint`: RPC endpoint URL (optional), `path`: Path to the Stylus project (optional)                                                                                                                                                                                 |
+| `activateStylusContract`  | Activate an already deployed Stylus contract         | `contractAddress`: Deployed contract address, `privateKey`: Private key for activation (optional), `privateKeyPath`: Path to private key file (optional), `keystorePath`: Path to keystore file (optional), `endpoint`: RPC endpoint URL, `path`: Path to the Stylus project (optional)                             |
+| `cacheStylusContract`     | Cache a contract using the Stylus CacheManager       | `subcommand`: Cache subcommand to execute ('bid', 'status', 'suggest-bid', 'help'), `contractAddress`: Contract address to cache, `endpoint`: RPC endpoint URL, `path`: Path to the Stylus project (optional)                                                                                                       |
+| `generateStylusBindings`  | Generate C code bindings for a Stylus contract       | `input`: Input file or contract ABI, `outDir`: Output directory for the generated bindings, `path`: Path to the Stylus project (optional)                                                                                                                                                                           |
+| `replayStylusTransaction` | Replay a Stylus transaction in GDB debugger          | `txHash`: Transaction hash to replay, `endpoint`: RPC endpoint URL (optional), `path`: Path to the Stylus project (optional)                                                                                                                                                                                        |
+| `traceStylusTransaction`  | Trace a Stylus transaction                           | `txHash`: Transaction hash to trace, `endpoint`: RPC endpoint URL (optional), `path`: Path to the Stylus project (optional)                                                                                                                                                                                         |
 
 ### Example Responses
 
