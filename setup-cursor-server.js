@@ -83,6 +83,7 @@ async function setupLocal(config, nodePath) {
     args: [packagePath],
     env: {
       ALCHEMY_API_KEY: process.env.ALCHEMY_API_KEY || "YOUR_ALCHEMY_API_KEY",
+      ARBISCAN_API_KEY: process.env.ARBISCAN_API_KEY || "YOUR_ARBISCAN_API_KEY",
     },
   };
 
@@ -125,6 +126,7 @@ async function setupNpm(config, nodePath) {
     args: [packagePath],
     env: {
       ALCHEMY_API_KEY: process.env.ALCHEMY_API_KEY || "YOUR_ALCHEMY_API_KEY",
+      ARBISCAN_API_KEY: process.env.ARBISCAN_API_KEY || "YOUR_ARBISCAN_API_KEY",
     },
   };
 

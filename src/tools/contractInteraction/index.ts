@@ -8,11 +8,36 @@ export function registerContractInteractionTools(server: McpServer) {
   // 1. Code Analysis
   server.tool(
     "getContractCode",
-    "Retrieve the bytecode of a contract",
-    { contractAddress: z.string().describe("Contract address") },
-    async ({ contractAddress }) => {
+    "Retrieve the bytecode of a contract at a specific address and optionally at a given block.",
+    {
+      addressOrName: z
+        .string()
+        .describe(
+          "The address or ENS name of the account to get the code for."
+        ),
+      blockTag: z
+        .string()
+        .optional()
+        .describe(
+          "The optional block number, hash, or tag (e.g., 'latest', 'pending', 'safe', 'finalized', 'earliest') to get the code for. Defaults to 'latest' if unspecified."
+        ),
+    },
+    async ({ addressOrName, blockTag }) => {
       try {
-        const code = await alchemy.core.getCode(contractAddress);
+        const code = await alchemy.core.getCode(
+          addressOrName,
+          blockTag || "latest"
+        );
+        if (code === "0x") {
+          return {
+            content: [
+              {
+                type: "text",
+                text: "No contract deployed at this address or block.",
+              },
+            ],
+          };
+        }
         return {
           content: [
             {
@@ -39,9 +64,21 @@ export function registerContractInteractionTools(server: McpServer) {
     },
     async ({ contractAddress, data }) => {
       try {
+        const apiKey = process.env.ARBISCAN_API_KEY;
+        if (!apiKey) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: "ARBISCAN_API_KEY is not configured. Please set it in your environment variables.",
+              },
+            ],
+          };
+        }
+
         // Get contract ABI from Etherscan or another source
         const abiResponse = await fetch(
-          `https://api.arbiscan.io/api?module=contract&action=getabi&address=${contractAddress}&apikey=YourApiKeyToken`
+          `https://api.arbiscan.io/api?module=contract&action=getabi&address=${contractAddress}&apikey=${apiKey}`
         );
         const abiData = await abiResponse.json();
 

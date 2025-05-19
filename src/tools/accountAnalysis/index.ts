@@ -8,6 +8,14 @@ import {
   AssetTransfersResult,
   OwnedNft,
   TokenBalance,
+  TokenBalanceType,
+  TokenBalancesResponse,
+  TokenBalancesResponseErc20,
+  NftFilters,
+  NftOrdering,
+  NftTokenType,
+  AssetTransfersParams,
+  AssetTransfersWithMetadataParams,
 } from "alchemy-sdk";
 
 export function registerAccountAnalysisTools(server: McpServer) {
@@ -17,10 +25,19 @@ export function registerAccountAnalysisTools(server: McpServer) {
     "Get native token balance for an Arbitrum address",
     {
       address: z.string().describe("Ethereum address to check balance for"),
+      blockTag: z
+        .string()
+        .optional()
+        .describe(
+          "The optional block number, hash, or tag (e.g., 'latest', 'pending', 'safe', 'finalized', 'earliest') to get the balance for. Defaults to 'latest' if unspecified."
+        ),
     },
-    async ({ address }) => {
+    async ({ address, blockTag }) => {
       try {
-        const balance = await alchemy.core.getBalance(address);
+        const balance = await alchemy.core.getBalance(
+          address,
+          blockTag || "latest"
+        );
         return {
           content: [
             {
@@ -45,15 +62,31 @@ export function registerAccountAnalysisTools(server: McpServer) {
   // 2. Token Balances
   server.tool(
     "getTokenBalances",
-    "Get all token balances for an Arbitrum address",
+    "Get ERC-20 token balances for an Arbitrum address, optionally filtered by a list of contract addresses.",
     {
       address: z
         .string()
-        .describe("Ethereum address to check token balances for"),
+        .describe(
+          "The owner address or ENS name to get the token balances for."
+        ),
+      contractAddresses: z
+        .array(z.string())
+        .optional()
+        .describe("Optional list of contract addresses to filter by."),
     },
-    async ({ address }) => {
+    async ({ address, contractAddresses }) => {
       try {
-        const balances = await alchemy.core.getTokenBalances(address);
+        let balances: TokenBalancesResponse | TokenBalancesResponseErc20;
+        if (contractAddresses && contractAddresses.length > 0) {
+          balances = await alchemy.core.getTokenBalances(
+            address,
+            contractAddresses
+          );
+        } else {
+          balances = await alchemy.core.getTokenBalances(address, {
+            type: TokenBalanceType.ERC20,
+          });
+        }
 
         if (balances.tokenBalances.length === 0) {
           return {
@@ -81,13 +114,19 @@ export function registerAccountAnalysisTools(server: McpServer) {
           })
         );
 
+        let responseText = `Token balances for ${address}:\n\n${formattedBalances.join(
+          "\n"
+        )}`;
+
+        if ("pageKey" in balances && balances.pageKey) {
+          responseText += `\n\nPage Key: ${balances.pageKey}`;
+        }
+
         return {
           content: [
             {
               type: "text",
-              text: `Token balances for ${address}:\n\n${formattedBalances.join(
-                "\n"
-              )}`,
+              text: responseText,
             },
           ],
         };
@@ -107,13 +146,67 @@ export function registerAccountAnalysisTools(server: McpServer) {
   // 3. NFTs
   server.tool(
     "getNfts",
-    "Get NFTs owned by an Arbitrum address",
+    "Get NFTs owned by an address, with options for filtering, pagination, and ordering.",
     {
-      address: z.string().describe("Ethereum address to check NFTs for"),
+      owner: z.string().describe("The address of the owner."),
+      options: z
+        .object({
+          contractAddresses: z
+            .array(z.string())
+            .optional()
+            .describe(
+              "Optional list of contract addresses to filter the results by. Limit is 45."
+            ),
+          omitMetadata: z
+            .boolean()
+            .optional()
+            .default(false)
+            .describe(
+              "Optional boolean flag to omit NFT metadata. Defaults to false."
+            ),
+          excludeFilters: z
+            .array(z.enum([NftFilters.SPAM, NftFilters.AIRDROPS]))
+            .optional()
+            .describe(
+              "Optional list of filters applied to the query. NFTs that match one or more of these filters are excluded from the response."
+            ),
+          includeFilters: z
+            .array(z.enum([NftFilters.SPAM, NftFilters.AIRDROPS]))
+            .optional()
+            .describe(
+              "Optional list of filters applied to the query. NFTs that match one or more of these filters are included in the response."
+            ),
+          pageSize: z
+            .number()
+            .optional()
+            .describe(
+              "Sets the total number of NFTs to return in the response. API default is 100. Maximum page size is 100."
+            ),
+          tokenUriTimeoutInMs: z
+            .number()
+            .optional()
+            .describe(
+              "No set timeout by default - When metadata is requested, this parameter is the timeout (in milliseconds) for the website hosting the metadata to respond. If you want to only access the cache and not live fetch any metadata for cache misses then set this value to 0."
+            ),
+          orderBy: z
+            .enum([NftOrdering.TRANSFERTIME])
+            .optional()
+            .describe(
+              "Order in which to return results. By default, results are ordered by contract address and token ID in lexicographic order. The available option is TRANSFERTIME."
+            ),
+          pageKey: z
+            .string()
+            .optional()
+            .describe("Optional page key to use for pagination."),
+        })
+        .optional(),
     },
-    async ({ address }) => {
+    async ({ owner, options }) => {
       try {
-        const nfts = await alchemy.nft.getNftsForOwner(address);
+        const nfts = await alchemy.nft.getNftsForOwner(
+          owner,
+          options ? { ...options } : undefined
+        );
 
         if (nfts.totalCount === 0) {
           return {
@@ -133,11 +226,19 @@ export function registerAccountAnalysisTools(server: McpServer) {
             }\nToken ID: ${nft.tokenId}\nType: ${nft.tokenType}\n---`
         );
 
+        let responseText = `NFTs owned by ${owner}:\n\n${formattedNfts.join(
+          "\n"
+        )}`;
+
+        if (nfts.pageKey) {
+          responseText += `\n\nPage Key: ${nfts.pageKey}`;
+        }
+
         return {
           content: [
             {
               type: "text",
-              text: `NFTs owned by ${address}:\n\n${formattedNfts.join("\n")}`,
+              text: responseText,
             },
           ],
         };
@@ -157,25 +258,127 @@ export function registerAccountAnalysisTools(server: McpServer) {
   // 4. Transaction History
   server.tool(
     "getTransactionHistory",
-    "Get transaction history for an Arbitrum address",
+    "Get transaction history for an Arbitrum address, with options for filtering and pagination.",
     {
       address: z
         .string()
-        .describe("Ethereum address to check transactions for"),
+        .describe(
+          "The address to check transactions for (used as fromAddress)."
+        ),
+      options: z
+        .object({
+          fromBlock: z
+            .string()
+            .optional()
+            .describe(
+              'The starting block to check for transfers. Defaults to "0x0".'
+            ),
+          toBlock: z
+            .string()
+            .optional()
+            .describe(
+              'Inclusive to block (hex string, int, or latest). Defaults to "latest".'
+            ),
+          toAddress: z
+            .string()
+            .optional()
+            .describe(
+              "The recipient address to filter transfers by. Defaults to a wildcard."
+            ),
+          contractAddresses: z
+            .array(z.string())
+            .optional()
+            .describe(
+              "List of contract addresses to filter for - only applies to erc20, erc721, erc1155 transfers. Defaults to all addresses if omitted."
+            ),
+          excludeZeroValue: z
+            .boolean()
+            .optional()
+            .describe(
+              "Whether to exclude transfers with zero value. API Defaults to true."
+            ),
+          order: z
+            .enum(["asc", "desc"])
+            .optional()
+            .describe(
+              "Whether to return results in ascending or descending order by block number (asc/desc). API Defaults to ascending."
+            ),
+          category: z
+            .array(
+              z.enum([
+                AssetTransfersCategory.EXTERNAL,
+                AssetTransfersCategory.INTERNAL,
+                AssetTransfersCategory.ERC20,
+                AssetTransfersCategory.ERC721,
+                AssetTransfersCategory.ERC1155,
+                AssetTransfersCategory.SPECIALNFT,
+              ])
+            )
+            .optional()
+            .describe(
+              "An array of categories to get transfers for. API defaults to all if omitted."
+            ),
+          maxCount: z
+            .number()
+            .optional()
+            .describe(
+              "The maximum number of results to return per page. API Defaults to 1000 if omitted."
+            ),
+          withMetadata: z
+            .boolean()
+            .optional()
+            .describe(
+              "Whether to include additional metadata about each transfer event. API Defaults to false."
+            ),
+          pageKey: z
+            .string()
+            .optional()
+            .describe(
+              "Optional page key from an existing one to use for pagination."
+            ),
+        })
+        .optional(),
     },
-    async ({ address }) => {
+    async ({ address, options }) => {
       try {
-        const transactions = await alchemy.core.getAssetTransfers({
-          fromBlock: "0x0",
+        const baseParams: AssetTransfersParams = {
           fromAddress: address,
-          category: [
+          fromBlock: options?.fromBlock ?? "0x0",
+          category: options?.category ?? [
             AssetTransfersCategory.EXTERNAL,
             AssetTransfersCategory.ERC20,
             AssetTransfersCategory.ERC721,
             AssetTransfersCategory.ERC1155,
           ],
-          maxCount: 10,
-        });
+        };
+
+        if (options?.toBlock !== undefined)
+          baseParams.toBlock = options.toBlock;
+        if (options?.toAddress !== undefined)
+          baseParams.toAddress = options.toAddress;
+        if (options?.contractAddresses !== undefined)
+          baseParams.contractAddresses = options.contractAddresses;
+        if (options?.excludeZeroValue !== undefined)
+          baseParams.excludeZeroValue = options.excludeZeroValue;
+        if (options?.order !== undefined)
+          baseParams.order = options.order as any;
+        if (options?.maxCount !== undefined)
+          baseParams.maxCount = options.maxCount;
+        if (options?.pageKey !== undefined)
+          baseParams.pageKey = options.pageKey;
+
+        let finalParams:
+          | AssetTransfersParams
+          | AssetTransfersWithMetadataParams = baseParams;
+
+        if (options?.withMetadata === true) {
+          finalParams = {
+            ...baseParams,
+            withMetadata: true,
+          } as AssetTransfersWithMetadataParams;
+        }
+
+        const transactions = await alchemy.core.getAssetTransfers(finalParams);
 
         if (transactions.transfers.length === 0) {
           return {
@@ -197,13 +400,19 @@ export function registerAccountAnalysisTools(server: McpServer) {
             }\n---`
         );
 
+        let responseText = `Transaction history for ${address}:\n\n${formattedTxs.join(
+          "\n"
+        )}`;
+
+        if (transactions.pageKey) {
+          responseText += `\n\nPage Key: ${transactions.pageKey}`;
+        }
+
         return {
           content: [
             {
               type: "text",
-              text: `Transaction history for ${address}:\n\n${formattedTxs.join(
-                "\n"
-              )}`,
+              text: responseText,
             },
           ],
         };
@@ -223,16 +432,43 @@ export function registerAccountAnalysisTools(server: McpServer) {
   // 5. NFT Metadata
   server.tool(
     "getNftMetadata",
-    "Get metadata for an NFT given its contract address and token ID",
+    "Get metadata for an NFT given its contract address and token ID, with options for caching and token type.",
     {
       contractAddress: z.string().describe("NFT contract address"),
       tokenId: z.string().describe("Token ID"),
+      options: z
+        .object({
+          tokenType: z
+            .enum([
+              NftTokenType.ERC721,
+              NftTokenType.ERC1155,
+              NftTokenType.UNKNOWN,
+            ])
+            .optional()
+            .describe(
+              "Optional field to specify the type of token to speed up the query."
+            ),
+          tokenUriTimeoutInMs: z
+            .number()
+            .optional()
+            .describe(
+              "No set timeout by default - When metadata is requested, this parameter is the timeout (in milliseconds) for the website hosting the metadata to respond. If you want to only access the cache and not live fetch any metadata for cache misses then set this value to 0."
+            ),
+          refreshCache: z
+            .boolean()
+            .optional()
+            .describe(
+              "Whether to refresh the metadata for the given NFT token before returning the response. API Defaults to false for faster response times."
+            ),
+        })
+        .optional(),
     },
-    async ({ contractAddress, tokenId }) => {
+    async ({ contractAddress, tokenId, options }) => {
       try {
         const metadata = await alchemy.nft.getNftMetadata(
           contractAddress,
-          tokenId
+          tokenId,
+          options ? { ...options } : undefined
         );
         return {
           content: [

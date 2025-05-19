@@ -36,7 +36,20 @@ export function registerCrossChainTools(server: McpServer) {
             content: [
               {
                 type: "text",
-                text: "Transaction not found or pending. Please verify the transaction hash and try again.",
+                text: "L1 transaction not found or still pending. Please verify the transaction hash and try again.",
+              },
+            ],
+          };
+        }
+
+        // Check if the L1 transaction was successful
+        if (l1Receipt.status === 0) {
+          // 0 indicates failure
+          return {
+            content: [
+              {
+                type: "text",
+                text: "The L1 transaction failed. No cross-chain message could have been initiated.",
               },
             ],
           };

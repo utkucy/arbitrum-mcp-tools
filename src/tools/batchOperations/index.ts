@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { formatEther } from "ethers";
-import { handleError } from "../common.js";
+import { handleError, formatTokenBalance } from "../common.js";
 import { alchemy } from "../../index.js";
 import { AssetTransfersCategory } from "alchemy-sdk";
 
@@ -22,14 +22,35 @@ export function registerBatchOperationsTools(server: McpServer) {
         const balances = await Promise.all(
           addresses.map(async (address) => {
             if (tokenAddress) {
-              // Use getTokenBalances instead and filter for the specific token
-              const tokenBalances = await alchemy.core.getTokenBalances(
+              // Fetch balance for a specific ERC-20 token
+              const tokenBalancesResponse = await alchemy.core.getTokenBalances(
                 address,
                 [tokenAddress]
               );
-              const tokenBalance = tokenBalances.tokenBalances[0];
-              return `${address}: ${tokenBalance.tokenBalance}`;
+              const specificTokenBalance =
+                tokenBalancesResponse.tokenBalances.find(
+                  (tb) =>
+                    tb.contractAddress.toLowerCase() ===
+                    tokenAddress.toLowerCase()
+                );
+
+              const metadata = await alchemy.core.getTokenMetadata(
+                tokenAddress
+              );
+              const name = metadata.name || "Unknown Token";
+              const symbol = metadata.symbol || "???";
+
+              if (specificTokenBalance && specificTokenBalance.tokenBalance) {
+                const formattedBalance = formatTokenBalance(
+                  BigInt(specificTokenBalance.tokenBalance),
+                  metadata.decimals || 18
+                );
+                return `${address}: ${formattedBalance} ${symbol} (${name})`;
+              } else {
+                return `${address}: 0 ${symbol} (${name}) (or no balance found for this token)`;
+              }
             }
+            // Fetch native ETH balance
             const balance = await alchemy.core.getBalance(address);
             return `${address}: ${formatEther(balance.toString())} ETH`;
           })

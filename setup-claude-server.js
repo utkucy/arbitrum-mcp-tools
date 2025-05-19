@@ -95,6 +95,7 @@ async function setupLocal(config, nodePath) {
       PATH: `${dirname(nodePath)}:${process.env.PATH}`,
       NODE_PATH: join(dirname(nodePath), "..", "lib", "node_modules"),
       ALCHEMY_API_KEY: process.env.ALCHEMY_API_KEY || "YOUR_ALCHEMY_API_KEY",
+      ARBISCAN_API_KEY: process.env.ARBISCAN_API_KEY || "YOUR_ARBISCAN_API_KEY",
     },
   };
 
@@ -139,6 +140,7 @@ async function setupNpm(config, nodePath) {
       PATH: `${dirname(nodePath)}:${process.env.PATH}`,
       NODE_PATH: join(dirname(nodePath), "..", "lib", "node_modules"),
       ALCHEMY_API_KEY: process.env.ALCHEMY_API_KEY || "YOUR_ALCHEMY_API_KEY",
+      ARBISCAN_API_KEY: process.env.ARBISCAN_API_KEY || "YOUR_ARBISCAN_API_KEY",
     },
   };
 

@@ -30,10 +30,21 @@ export function registerChainDataTools(server: McpServer) {
   server.tool(
     "getBlock",
     "Get details of a block by number or hash",
-    { block: z.string().describe("Block number (as a string) or block hash") },
+    {
+      block: z
+        .string()
+        .describe(
+          "Block number (as a string), block hash, or one of the following tags: 'latest', 'pending', 'earliest'"
+        ),
+    },
     async ({ block }) => {
       try {
         const blockData = await alchemy.core.getBlock(block);
+        if (!blockData) {
+          return {
+            content: [{ type: "text", text: "Block not found." }],
+          };
+        }
         return {
           content: [
             {
@@ -100,6 +111,16 @@ export function registerChainDataTools(server: McpServer) {
     async ({ txHash }) => {
       try {
         const txData = await alchemy.core.getTransaction(txHash);
+        if (!txData) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: "Transaction not found or not yet indexed.",
+              },
+            ],
+          };
+        }
         return {
           content: [
             {
@@ -124,6 +145,16 @@ export function registerChainDataTools(server: McpServer) {
     async ({ txHash }) => {
       try {
         const receipt = await alchemy.core.getTransactionReceipt(txHash);
+        if (!receipt) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: "Transaction receipt not found or not yet indexed.",
+              },
+            ],
+          };
+        }
         return {
           content: [
             {
