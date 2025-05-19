@@ -126,6 +126,16 @@ The tools are organized into several categories:
 6. **Batch Operations** - Tools for performing operations on multiple addresses
 7. **Stylus** - Tools for Stylus development and interaction
 
+### Tool Documentation Links 🔗
+
+For more detailed information on the underlying APIs and technologies used by these tools, please refer to the following resources:
+
+- **Alchemy SDK**: [Alchemy SDK Quickstart](https://www.alchemy.com/docs/reference/alchemy-sdk-quickstart)
+  - [SDK Core Methods](https://www.alchemy.com/docs/reference/sdk-core-methods)
+  - [SDK NFT Methods](https://www.alchemy.com/docs/reference/sdk-nft-methods)
+  - [SDK Transact Methods](https://www.alchemy.com/docs/reference/sdk-transact-methods)
+- **Arbitrum Stylus**: [Stylus CLI Usage](https://docs.arbitrum.io/stylus/using-cli#using-cargo-stylus)
+
 ### Example Usage 📝
 
 When using Claude, Cursor, or Windsurf, you can simply ask for blockchain data using natural language. The AI will determine which tool to use.
