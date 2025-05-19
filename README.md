@@ -32,7 +32,7 @@ This project provides a set of tools for interacting with the Arbitrum blockchai
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/arbitrum-mcp-tools.git
+git clone https://github.com/utkucy/arbitrum-mcp-tools.git
 cd arbitrum-mcp-tools
 ```
 
@@ -202,7 +202,7 @@ npm run build
    a. Setting up a test environment:
 
    ```bash
-   npm run setup-cursor # or setup-claude
+   npm run setup-cursor | setup-windsurf | setup-claude
    ```
 
    b. Using your AI assistant to interact with the tools.
