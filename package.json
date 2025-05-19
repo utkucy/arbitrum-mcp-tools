@@ -12,7 +12,8 @@
     "prepare": "npm run build",
     "watch": "tsc --watch",
     "setup-claude": "npm install && npm run build && node setup-claude-server.js",
-    "setup-cursor": "npm install && npm run build && node setup-cursor-server.js"
+    "setup-cursor": "npm install && npm run build && node setup-cursor-server.js",
+    "setup-windsurf": "npm install && npm run build && node setup-windsurf-server.js"
   },
   "files": [
     "build"

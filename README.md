@@ -1,14 +1,15 @@
-# Arbitrum MCP Tools
+# Arbitrum MCP Tools 🚀🦾
 
-This project provides a set of tools for interacting with the Arbitrum blockchain via the Model Context Protocol (MCP), enabling AI assistants like Claude and Cursor to perform blockchain operations.
+This project provides a set of tools for interacting with the Arbitrum blockchain via the Model Context Protocol (MCP), enabling AI assistants like Claude, Cursor, and Windsurf to perform blockchain operations.
 
-## Table of Contents
+## Table of Contents 📚
 
 - [Setup Guide](#setup-guide)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Setup for Cursor](#setup-for-cursor)
   - [Setup for Claude](#setup-for-claude)
+  - [Setup for Windsurf](#setup-for-windsurf)
 - [Usage](#usage)
   - [Available Tools](#available-tools)
   - [Example Usage](#example-usage)
@@ -18,16 +19,16 @@ This project provides a set of tools for interacting with the Arbitrum blockchai
   - [Tool Registration](#tool-registration)
   - [Testing Your Tools](#testing-your-tools)
 
-## Setup Guide
+## Setup Guide 🛠️
 
-### Prerequisites
+### Prerequisites 📝
 
 - Node.js v16.x or higher
 - npm or yarn
 - Git
 - Alchemy API Key (sign up at https://www.alchemy.com/)
 
-### Installation
+### Installation 🧑‍💻
 
 1. Clone the repository:
 
@@ -46,7 +47,7 @@ Replace `your_alchemy_api_key_here` with your actual Alchemy API key. This step 
 
 3. Run one of the setup scripts as described in the sections below. The scripts will automatically install dependencies and build the project.
 
-### Setup for Cursor
+### Setup for Cursor 🖱️
 
 1. Run the setup script:
 
@@ -65,7 +66,7 @@ npm run setup-cursor
 
 Note: The setup script will automatically use the Alchemy API key from your `.env` file to configure the MCP tools.
 
-### Setup for Claude
+### Setup for Claude 🤖
 
 1. Install Claude desktop application if you haven't already.
 
@@ -86,11 +87,32 @@ npm run setup-claude
 
 Note: The setup script will automatically use the Alchemy API key from your `.env` file to configure the MCP tools.
 
-## Usage
+### Setup for Windsurf 🌊🪁
+
+1. Install Windsurf application if you haven't already.
+
+2. Run the setup script:
+
+```bash
+npm run setup-windsurf
+```
+
+3. When prompted, choose your installation method:
+
+   - Option 1: Setup Locally (use current project files)
+   - Option 2: Setup from NPM (install globally)
+
+4. The script will configure Windsurf to use the Arbitrum MCP tools.
+
+5. Restart Windsurf to apply the changes.
+
+Note: The setup script will automatically use the Alchemy API key from your `.env` file to configure the MCP tools.
+
+## Usage 🎮
 
 Once set up, the Arbitrum MCP tools will be available to your AI assistant. The tools are categorized by functionality and can be accessed through natural language.
 
-### Available Tools
+### Available Tools 🧰
 
 The tools are organized into several categories:
 
@@ -102,9 +124,9 @@ The tools are organized into several categories:
 6. **Batch Operations** - Tools for performing operations on multiple addresses
 7. **Stylus** - Tools for Stylus development and interaction
 
-### Example Usage
+### Example Usage 📝
 
-When using Claude or Cursor, you can simply ask for blockchain data using natural language. The AI will determine which tool to use.
+When using Claude, Cursor, or Windsurf, you can simply ask for blockchain data using natural language. The AI will determine which tool to use.
 
 Examples:
 
@@ -124,9 +146,9 @@ The AI uses: getAccountBalance({ address: "0x742d35Cc6634C0532925a3b844Bc454e443
 Output: "The account has 1.23 ETH"
 ```
 
-## Development Guide
+## Development Guide 🏗️
 
-### Project Structure
+### Project Structure 🗂️
 
 The codebase is organized into modular components:
 
@@ -145,7 +167,7 @@ src/
 │   └── stylus/             # Stylus development tools
 ```
 
-### Adding New Tools
+### Adding New Tools 🛠️
 
 1. Create a new file in the appropriate category folder or create a new category folder if needed.
 
@@ -165,7 +187,7 @@ export async function myNewTool(params: { param1: string; param2: string }) {
 }
 ```
 
-### Tool Registration
+### Tool Registration 🏷️
 
 1. Register your tool in the category's index.ts file:
 
@@ -189,7 +211,7 @@ export const tools = {
 
 3. Update the MCPServer configuration in `src/index.ts` if needed.
 
-### Testing Your Tools
+### Testing Your Tools 🧪
 
 1. Build the project after making changes:
 
@@ -197,26 +219,22 @@ export const tools = {
 npm run build
 ```
 
-2. Test your tools by:
+2. Test your tools by selecting the local setup option:
 
-   a. Setting up a test environment:
-
-   ```bash
-   npm run setup-cursor | setup-windsurf | setup-claude
-   ```
-
-   b. Using your AI assistant to interact with the tools.
+```bash
+npm run setup-cursor | setup-windsurf | setup-claude
+```
 
 3. If you're making significant changes, consider updating the setup scripts to ensure they handle your new tools correctly.
 
-## Feature Matrix
+## Feature Matrix 🧮
 
 For a detailed list of all available tools and their capabilities, see the [Feature Matrix](./FEATURES.md).
 
-## Contributing
+## Contributing 🙌
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
+## License 📜
 
 This project is licensed under the MIT License - see the LICENSE file for details.

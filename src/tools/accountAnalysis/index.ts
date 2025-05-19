@@ -174,6 +174,7 @@ export function registerAccountAnalysisTools(server: McpServer) {
             AssetTransfersCategory.ERC721,
             AssetTransfersCategory.ERC1155,
           ],
+          maxCount: 10,
         });
 
         if (transactions.transfers.length === 0) {
