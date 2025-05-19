@@ -23,7 +23,7 @@ This project provides a set of tools for interacting with the Arbitrum blockchai
 
 ### Prerequisites 📝
 
-- Node.js v16.x or higher
+- Node.js v20.x or higher
 - npm or yarn
 - Git
 - Alchemy API Key (sign up at https://www.alchemy.com/)
