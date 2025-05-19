@@ -198,7 +198,7 @@ if (!existsSync(claudeConfigPath)) {
   try {
     // Read existing config
     const configData = readFileSync(claudeConfigPath, "utf8");
-    const config = JSON.parse(configData);
+    let config = JSON.parse(configData);
 
     // Get node path using process
     const nodePath = process.execPath;
