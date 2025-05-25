@@ -27,7 +27,7 @@ This project provides a set of tools for interacting with the Arbitrum blockchai
 - npm or yarn
 - Git
 - Alchemy API Key (sign up at https://www.alchemy.com/)
-- Arbiscan API Key (sign up at https://arbiscan.io/myapikey). This is optional but recommended for the `decodeCalldata` tool which uses it to fetch contract ABIs.
+- Arbiscan API Key (sign up at https://arbiscan.io). This is optional but recommended for the `decodeTransactionCalldata` tool which uses it to fetch contract ABIs.
 
 ### Installation 🧑‍💻
 
@@ -45,7 +45,7 @@ ALCHEMY_API_KEY=your_alchemy_api_key_here
 ARBISCAN_API_KEY=your_arbiscan_api_key_here
 ```
 
-Replace `your_alchemy_api_key_here` with your actual Alchemy API key, and `your_arbiscan_api_key_here` with your Arbiscan API key. The `ALCHEMY_API_KEY` is required for most tools to work correctly. The `ARBISCAN_API_KEY` is used by the `decodeCalldata` tool to fetch contract ABIs from Arbiscan; if not provided, this specific tool will return an error prompting you to set the key.
+Replace `your_alchemy_api_key_here` with your actual Alchemy API key, and `your_arbiscan_api_key_here` with your Arbiscan API key. The `ALCHEMY_API_KEY` is required for most tools to work correctly. The `ARBISCAN_API_KEY` is used by the `decodeTransactionCalldata` tool to fetch contract ABIs from Arbiscan; if not provided, this specific tool will return an error prompting you to set the key.
 
 3. Run one of the setup scripts as described in the sections below. The scripts will automatically install dependencies and build the project.
 
@@ -231,7 +231,7 @@ export const tools = {
 npm run build
 ```
 
-2. Test your tools by selecting the local setup option:
+2. Test your tools by selecting the local setup option for the following commands:
 
 ```bash
 npm run setup-cursor | setup-windsurf | setup-claude
