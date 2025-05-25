@@ -121,7 +121,9 @@ export function registerBatchOperationsTools(server: McpServer) {
         // Add NFT data if requested
         const nftPromises = includeNfts
           ? addresses.map(async (address) => {
-              const nfts = await alchemy.nft.getNftsForOwner(address);
+              const nfts = await alchemy.nft.getNftsForOwner(address, {
+                pageSize: 50,
+              });
               return {
                 address,
                 nftCount: nfts.totalCount,
@@ -143,8 +145,9 @@ export function registerBatchOperationsTools(server: McpServer) {
                 fromAddress: address,
                 category: [
                   AssetTransfersCategory.EXTERNAL,
-                  AssetTransfersCategory.INTERNAL,
                   AssetTransfersCategory.ERC20,
+                  AssetTransfersCategory.ERC721,
+                  AssetTransfersCategory.ERC1155,
                 ],
               });
               return {

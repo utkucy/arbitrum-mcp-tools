@@ -39,7 +39,14 @@ export function registerChainDataTools(server: McpServer) {
     },
     async ({ block }) => {
       try {
-        const blockData = await alchemy.core.getBlock(block);
+        // Convert decimal block numbers to hex format
+        let formattedBlock = block;
+        if (/^\d+$/.test(block)) {
+          // If block is a pure decimal number, convert to hex
+          formattedBlock = "0x" + parseInt(block, 10).toString(16);
+        }
+
+        const blockData = await alchemy.core.getBlock(formattedBlock);
         if (!blockData) {
           return {
             content: [{ type: "text", text: "Block not found." }],

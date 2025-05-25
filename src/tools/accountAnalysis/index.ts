@@ -118,10 +118,6 @@ export function registerAccountAnalysisTools(server: McpServer) {
           "\n"
         )}`;
 
-        if ("pageKey" in balances && balances.pageKey) {
-          responseText += `\n\nPage Key: ${balances.pageKey}`;
-        }
-
         return {
           content: [
             {
@@ -179,8 +175,9 @@ export function registerAccountAnalysisTools(server: McpServer) {
           pageSize: z
             .number()
             .optional()
+            .default(50)
             .describe(
-              "Sets the total number of NFTs to return in the response. API default is 100. Maximum page size is 100."
+              "Sets the total number of NFTs to return in the response. API default is 50. Maximum page size is 100."
             ),
           tokenUriTimeoutInMs: z
             .number()
@@ -229,10 +226,6 @@ export function registerAccountAnalysisTools(server: McpServer) {
         let responseText = `NFTs owned by ${owner}:\n\n${formattedNfts.join(
           "\n"
         )}`;
-
-        if (nfts.pageKey) {
-          responseText += `\n\nPage Key: ${nfts.pageKey}`;
-        }
 
         return {
           content: [
@@ -321,6 +314,7 @@ export function registerAccountAnalysisTools(server: McpServer) {
           maxCount: z
             .number()
             .optional()
+            .default(50)
             .describe(
               "The maximum number of results to return per page. API Defaults to 1000 if omitted."
             ),
