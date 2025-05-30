@@ -84,6 +84,9 @@ async function setupLocal(config, nodePath) {
     env: {
       ALCHEMY_API_KEY: process.env.ALCHEMY_API_KEY || "YOUR_ALCHEMY_API_KEY",
       ARBISCAN_API_KEY: process.env.ARBISCAN_API_KEY || "YOUR_ARBISCAN_API_KEY",
+      STYLUS_PRIVATE_KEY: process.env.STYLUS_PRIVATE_KEY || "",
+      STYLUS_PRIVATE_KEY_PATH: process.env.STYLUS_PRIVATE_KEY_PATH || "",
+      STYLUS_KEYSTORE_PATH: process.env.STYLUS_KEYSTORE_PATH || "",
     },
   };
 
@@ -127,6 +130,9 @@ async function setupNpm(config, nodePath) {
     env: {
       ALCHEMY_API_KEY: process.env.ALCHEMY_API_KEY || "YOUR_ALCHEMY_API_KEY",
       ARBISCAN_API_KEY: process.env.ARBISCAN_API_KEY || "YOUR_ARBISCAN_API_KEY",
+      STYLUS_PRIVATE_KEY: process.env.STYLUS_PRIVATE_KEY || "",
+      STYLUS_PRIVATE_KEY_PATH: process.env.STYLUS_PRIVATE_KEY_PATH || "",
+      STYLUS_KEYSTORE_PATH: process.env.STYLUS_KEYSTORE_PATH || "",
     },
   };
 

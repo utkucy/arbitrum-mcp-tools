@@ -38,14 +38,31 @@ git clone https://github.com/utkucy/arbitrum-mcp-tools.git
 cd arbitrum-mcp-tools
 ```
 
-2. Create a `.env` file in the project root with your Alchemy and Arbiscan API key:
+2. Create a `.env` file in the project root with your API keys and configuration:
 
 ```bash
 ALCHEMY_API_KEY=your_alchemy_api_key_here
 ARBISCAN_API_KEY=your_arbiscan_api_key_here
+
+# Stylus Contract Authentication (choose one method)
+# Option 1: Direct private key (least secure, not recommended for production)
+STYLUS_PRIVATE_KEY=your_private_key_here
+
+# Option 2: Path to private key file (more secure)
+STYLUS_PRIVATE_KEY_PATH=/path/to/your/private/key/file
+
+# Option 3: Path to keystore file (most secure, requires password prompt)
+STYLUS_KEYSTORE_PATH=/path/to/your/keystore/file
 ```
 
-Replace `your_alchemy_api_key_here` with your actual Alchemy API key, and `your_arbiscan_api_key_here` with your Arbiscan API key. The `ALCHEMY_API_KEY` is required for most tools to work correctly. The `ARBISCAN_API_KEY` is used by the `decodeTransactionCalldata` tool to fetch contract ABIs from Arbiscan; if not provided, this specific tool will return an error prompting you to set the key.
+Replace the values with your actual API keys and authentication details:
+
+- `ALCHEMY_API_KEY` is required for most tools to work correctly
+- `ARBISCAN_API_KEY` is used by the `decodeTransactionCalldata` tool to fetch contract ABIs from Arbiscan; if not provided, this specific tool will return an error prompting you to set the key
+- For Stylus tools (`deployStylusContract`, `activateStylusContract`), you need to set **one** of the three authentication methods:
+  - `STYLUS_PRIVATE_KEY`: Direct private key (quick but less secure)
+  - `STYLUS_PRIVATE_KEY_PATH`: Path to a file containing your private key (more secure)
+  - `STYLUS_KEYSTORE_PATH`: Path to an encrypted keystore file (most secure, will prompt for password)
 
 3. Run one of the setup scripts as described in the sections below. The scripts will automatically install dependencies and build the project.
 

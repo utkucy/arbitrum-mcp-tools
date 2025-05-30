@@ -190,14 +190,8 @@ export function registerStylusTools(server: McpServer) {
   // 5. Deploy a Stylus contract
   server.tool(
     "deployStylusContract",
-    "Deploy a Stylus contract to the Arbitrum network",
+    "Deploy a Stylus contract to the Arbitrum network. Uses STYLUS_PRIVATE_KEY, STYLUS_PRIVATE_KEY_PATH, or STYLUS_KEYSTORE_PATH from environment variables for authentication.",
     {
-      privateKey: z.string().optional().describe("Private key for deployment"),
-      privateKeyPath: z
-        .string()
-        .optional()
-        .describe("Path to private key file"),
-      keystorePath: z.string().optional().describe("Path to keystore file"),
       endpoint: z.string().describe("RPC endpoint URL"),
       path: z
         .string()
@@ -208,18 +202,16 @@ export function registerStylusTools(server: McpServer) {
         .optional()
         .describe("Only estimate gas instead of deploying (optional)"),
     },
-    async ({
-      privateKey,
-      privateKeyPath,
-      keystorePath,
-      endpoint,
-      path: projectPath,
-      estimateGas,
-    }) => {
+    async ({ endpoint, path: projectPath, estimateGas }) => {
       try {
         const args = [`--endpoint=${endpoint}`];
 
-        // At least one of privateKey, privateKeyPath, or keystorePath must be provided
+        // Get authentication method from environment variables
+        const privateKey = process.env.STYLUS_PRIVATE_KEY;
+        const privateKeyPath = process.env.STYLUS_PRIVATE_KEY_PATH;
+        const keystorePath = process.env.STYLUS_KEYSTORE_PATH;
+
+        // At least one authentication method must be provided
         if (privateKey) {
           args.push(`--private-key=${privateKey}`);
         } else if (privateKeyPath) {
@@ -228,7 +220,7 @@ export function registerStylusTools(server: McpServer) {
           args.push(`--keystore-path=${keystorePath}`);
         } else {
           throw new Error(
-            "At least one of privateKey, privateKeyPath, or keystorePath must be provided"
+            "Authentication required: Set one of STYLUS_PRIVATE_KEY, STYLUS_PRIVATE_KEY_PATH, or STYLUS_KEYSTORE_PATH environment variables"
           );
         }
 
@@ -319,33 +311,25 @@ export function registerStylusTools(server: McpServer) {
   // 7. Activate a deployed Stylus contract
   server.tool(
     "activateStylusContract",
-    "Activate an already deployed Stylus contract",
+    "Activate an already deployed Stylus contract. Uses STYLUS_PRIVATE_KEY, STYLUS_PRIVATE_KEY_PATH, or STYLUS_KEYSTORE_PATH from environment variables for authentication.",
     {
       contractAddress: z.string().describe("Deployed contract address"),
-      privateKey: z.string().optional().describe("Private key for activation"),
-      privateKeyPath: z
-        .string()
-        .optional()
-        .describe("Path to private key file"),
-      keystorePath: z.string().optional().describe("Path to keystore file"),
       endpoint: z.string().describe("RPC endpoint URL"),
       path: z
         .string()
         .optional()
         .describe("Path to the Stylus project (optional)"),
     },
-    async ({
-      contractAddress,
-      privateKey,
-      privateKeyPath,
-      keystorePath,
-      endpoint,
-      path: projectPath,
-    }) => {
+    async ({ contractAddress, endpoint, path: projectPath }) => {
       try {
         const args = [`--address=${contractAddress}`, `--endpoint=${endpoint}`];
 
-        // At least one of privateKey, privateKeyPath, or keystorePath must be provided
+        // Get authentication method from environment variables
+        const privateKey = process.env.STYLUS_PRIVATE_KEY;
+        const privateKeyPath = process.env.STYLUS_PRIVATE_KEY_PATH;
+        const keystorePath = process.env.STYLUS_KEYSTORE_PATH;
+
+        // At least one authentication method must be provided
         if (privateKey) {
           args.push(`--private-key=${privateKey}`);
         } else if (privateKeyPath) {
@@ -354,7 +338,7 @@ export function registerStylusTools(server: McpServer) {
           args.push(`--keystore-path=${keystorePath}`);
         } else {
           throw new Error(
-            "At least one of privateKey, privateKeyPath, or keystorePath must be provided"
+            "Authentication required: Set one of STYLUS_PRIVATE_KEY, STYLUS_PRIVATE_KEY_PATH, or STYLUS_KEYSTORE_PATH environment variables"
           );
         }
 
