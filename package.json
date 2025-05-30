@@ -1,8 +1,38 @@
 {
   "name": "arbitrum-mcp-tools",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "./build/src/index.js",
+  "author": "Utkucan YILDIRIM @utkucy",
   "type": "module",
+  "keywords": [
+    "arbitrum",
+    "mcp",
+    "model-context-protocol",
+    "blockchain",
+    "ethereum",
+    "web3",
+    "crypto",
+    "defi",
+    "smart-contracts",
+    "claude",
+    "cursor",
+    "windsurf",
+    "ai-tools",
+    "alchemy",
+    "stylus",
+    "layer2",
+    "scaling",
+    "dapp",
+    "nft",
+    "token",
+    "transaction",
+    "wallet",
+    "development",
+    "cli",
+    "sdk"
+  ],
+  "license": "ISC",
+  "description": "A comprehensive collection of Model Context Protocol (MCP) tools for interacting with the Arbitrum blockchain. Enables AI assistants like Claude, Cursor, and Windsurf to perform blockchain operations including account analysis, contract interaction, cross-chain operations, Stylus development, and more. Features tools for checking balances, analyzing transactions, decoding contract calls, managing NFTs, and deploying Stylus contracts.",
   "private": false,
   "bin": {
     "arbitrum-mcp-tools2": "./build/src/index.js"
@@ -18,10 +48,6 @@
   "files": [
     "build"
   ],
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
     "@types/node": "^22.10.0",
     "shx": "^0.4.0",
