@@ -373,7 +373,7 @@ export function registerStylusTools(server: McpServer) {
   // 8. Cache a Stylus contract
   server.tool(
     "cacheStylusContract",
-    "Cache a contract using the Stylus CacheManager",
+    "Cache a contract using the Stylus CacheManager. Uses STYLUS_PRIVATE_KEY, STYLUS_PRIVATE_KEY_PATH, or STYLUS_KEYSTORE_PATH from environment variables for authentication.",
     {
       subcommand: z
         .enum(["bid", "status", "suggest-bid", "help"])
@@ -384,10 +384,49 @@ export function registerStylusTools(server: McpServer) {
         .string()
         .optional()
         .describe("Path to the Stylus project (optional)"),
+      bidAmount: z
+        .string()
+        .optional()
+        .describe("Bid amount (required for 'bid' subcommand)"),
     },
-    async ({ subcommand, contractAddress, endpoint, path: projectPath }) => {
+    async ({
+      subcommand,
+      contractAddress,
+      endpoint,
+      path: projectPath,
+      bidAmount,
+    }) => {
       try {
-        const args = [`--address=${contractAddress}`, `--endpoint=${endpoint}`];
+        const args = [`--endpoint=${endpoint}`];
+
+        // Get authentication method from environment variables
+        const privateKey = process.env.STYLUS_PRIVATE_KEY;
+        const privateKeyPath = process.env.STYLUS_PRIVATE_KEY_PATH;
+        const keystorePath = process.env.STYLUS_KEYSTORE_PATH;
+
+        // At least one authentication method must be provided
+        if (privateKey) {
+          args.push(`--private-key=${privateKey}`);
+        } else if (privateKeyPath) {
+          args.push(`--private-key-path=${privateKeyPath}`);
+        } else if (keystorePath) {
+          args.push(`--keystore-path=${keystorePath}`);
+        } else {
+          throw new Error(
+            "Authentication required: Set one of STYLUS_PRIVATE_KEY, STYLUS_PRIVATE_KEY_PATH, or STYLUS_KEYSTORE_PATH environment variables"
+          );
+        }
+
+        // Add contract address
+        args.push(contractAddress);
+
+        // Add bid amount if provided and required
+        if (subcommand === "bid") {
+          if (!bidAmount) {
+            throw new Error("Bid amount is required for 'bid' subcommand");
+          }
+          args.push(bidAmount);
+        }
 
         // We need to be in the project directory
         const output = await executeCargoStylusCommand(
@@ -417,33 +456,258 @@ export function registerStylusTools(server: McpServer) {
     }
   );
 
-  // 9. Generate C code bindings
   server.tool(
-    "generateStylusBindings",
-    "Generate C code bindings for a Stylus contract",
+    "prepareStylusCgen",
+    "Prepare ABI JSON for cargo stylus cgen command",
     {
-      input: z.string().describe("Input file or contract ABI"),
-      outDir: z
+      projectPath: z.string().describe("The project path"),
+      outputPath: z
         .string()
-        .describe("Output directory for the generated bindings"),
-      path: z
+        .describe("The output file for cgen-compatible JSON"),
+      rustFeatures: z
         .string()
         .optional()
-        .describe("Path to the Stylus project (optional)"),
+        .describe(
+          "Rust crate's features list. Required to include feature specific ABI"
+        ),
     },
-    async ({ input, outDir, path: projectPath }) => {
+    async ({ projectPath, outputPath, rustFeatures }) => {
       try {
-        // We need to be in the project directory
-        const output = await executeCargoStylusCommand(
-          `cgen --input ${input} --out_dir ${outDir}`,
-          projectPath
+        const args: string[] = ["--json"];
+
+        if (rustFeatures) {
+          args.push(`--rust-features="${rustFeatures}"`);
+        }
+
+        // Export ABI first
+        const abiOutput = await executeCargoStylusCommand(
+          "export-abi",
+          projectPath,
+          args
         );
+
+        // Parse the output to extract contract name and ABI
+        const lines = abiOutput.split("\n");
+        let abiJson = "";
+        let extractedContractName = "Contract"; // default fallback
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+
+          // Look for contract name in header
+          if (line.includes("=======") && line.includes(":")) {
+            const headerMatch = line.match(/=======\s*<[^>]*>:(\w+)\s*=======/);
+            if (headerMatch) {
+              extractedContractName = headerMatch[1];
+            }
+          }
+
+          // Look for ABI JSON (starts with [ and contains "type")
+          if (line.trim().startsWith("[") && line.includes('"type"')) {
+            abiJson = line.trim();
+            break;
+          }
+        }
+
+        if (!abiJson) {
+          throw new Error("Could not extract ABI JSON from export-abi output");
+        }
+
+        // Parse and validate ABI
+        let abi;
+        try {
+          abi = JSON.parse(abiJson);
+        } catch (parseError) {
+          throw new Error(`Invalid ABI JSON: ${parseError}`);
+        }
+
+        // Create cgen-compatible structure
+        const cgenFormat = {
+          contracts: {
+            [`${extractedContractName}.sol`]: {
+              [extractedContractName]: {
+                abi: abi,
+              },
+            },
+          },
+        };
+
+        const formattedJson = JSON.stringify(cgenFormat, null, 2);
+
+        // Write to output file
+        const fs = await import("fs");
+        await fs.promises.writeFile(outputPath, formattedJson);
 
         return {
           content: [
             {
               type: "text",
-              text: `C bindings generation results:\n\n${output}`,
+              text: `Successfully prepared cgen-compatible ABI JSON for contract "${extractedContractName}".\nOutput saved to: ${outputPath}\n\nYou can now run:\ncargo stylus cgen ${outputPath} ./generated/\n\nGenerated structure:\n${formattedJson}`,
+            },
+          ],
+        };
+      } catch (error: unknown) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error preparing cgen ABI: ${handleError(error)}`,
+            },
+          ],
+        };
+      }
+    }
+  );
+
+  // 9. Generate C code bindings
+  server.tool(
+    "generateStylusBindings",
+    "Generate C code bindings for a Stylus contract from project source",
+    {
+      projectPath: z.string().describe("The Stylus project path"),
+      outDir: z
+        .string()
+        .describe("Output directory for the generated C bindings"),
+      rustFeatures: z
+        .string()
+        .optional()
+        .describe("Rust crate's features list for ABI generation"),
+      abiOutputPath: z
+        .string()
+        .optional()
+        .describe(
+          "Path to save the prepared ABI JSON (optional, temp file used if not provided)"
+        ),
+      keepAbiFile: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe(
+          "Keep the generated ABI JSON file after C binding generation"
+        ),
+    },
+    async ({
+      projectPath,
+      outDir,
+      rustFeatures,
+      abiOutputPath,
+      keepAbiFile,
+    }) => {
+      try {
+        let generatedAbiPath = "";
+
+        // Generate ABI from the project
+
+        const args: string[] = ["--json"];
+
+        if (rustFeatures) {
+          args.push(`--rust-features="${rustFeatures}"`);
+        }
+
+        // Export ABI first
+        const abiOutput = await executeCargoStylusCommand(
+          "export-abi",
+          projectPath,
+          args
+        );
+
+        // Parse the output to extract contract name and ABI
+        const lines = abiOutput.split("\n");
+        let abiJson = "";
+        let extractedContractName = "Contract"; // default fallback
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+
+          // Look for contract name in header
+          if (line.includes("=======") && line.includes(":")) {
+            const headerMatch = line.match(/=======\s*<[^>]*>:(\w+)\s*=======/);
+            if (headerMatch) {
+              extractedContractName = headerMatch[1];
+            }
+          }
+
+          // Look for ABI JSON (starts with [ and contains "type")
+          if (line.trim().startsWith("[") && line.includes('"type"')) {
+            abiJson = line.trim();
+            break;
+          }
+        }
+
+        if (!abiJson) {
+          throw new Error("Could not extract ABI JSON from export-abi output");
+        }
+
+        // Parse and validate ABI
+        let abi;
+        try {
+          abi = JSON.parse(abiJson);
+        } catch (parseError) {
+          throw new Error(`Invalid ABI JSON: ${parseError}`);
+        }
+
+        // Create cgen-compatible structure
+        const cgenFormat = {
+          contracts: {
+            [`${extractedContractName}.sol`]: {
+              [extractedContractName]: {
+                abi: abi,
+              },
+            },
+          },
+        };
+
+        const formattedJson = JSON.stringify(cgenFormat, null, 2);
+
+        // Determine output path for ABI JSON
+        const fs = await import("fs");
+        const path = await import("path");
+
+        if (abiOutputPath) {
+          generatedAbiPath = abiOutputPath;
+        } else {
+          // Use temp file
+          const os = await import("os");
+          generatedAbiPath = path.join(
+            os.tmpdir(),
+            `${extractedContractName}_cgen_abi.json`
+          );
+        }
+
+        // Write ABI JSON file
+        await fs.promises.writeFile(generatedAbiPath, formattedJson);
+
+        // Now generate C bindings using the ABI JSON
+        const cgenOutput = await executeCargoStylusCommand(
+          `cgen ${generatedAbiPath} ${outDir}`
+        );
+
+        // Clean up temp file if not keeping it
+        if (generatedAbiPath && !keepAbiFile && !abiOutputPath) {
+          try {
+            const fs = await import("fs");
+            await fs.promises.unlink(generatedAbiPath);
+          } catch (cleanupError) {
+            // Non-fatal error, just log it
+            console.warn(
+              `Warning: Could not clean up temp ABI file: ${cleanupError}`
+            );
+          }
+        }
+
+        let resultMessage = `C bindings generated successfully!\n\nOutput directory: ${outDir}\n\n${cgenOutput}`;
+
+        if (keepAbiFile || abiOutputPath) {
+          resultMessage += `\n\nABI JSON saved to: ${generatedAbiPath}`;
+        }
+
+        resultMessage += `\n\nGenerated from project: ${projectPath}`;
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: resultMessage,
             },
           ],
         };
@@ -459,7 +723,6 @@ export function registerStylusTools(server: McpServer) {
       }
     }
   );
-
   // 10. Replay a transaction in GDB
   server.tool(
     "replayStylusTransaction",
@@ -479,6 +742,8 @@ export function registerStylusTools(server: McpServer) {
         if (endpoint) {
           args.push(`--endpoint=${endpoint}`);
         }
+
+        args.push("--use-native-tracer");
 
         // We need to be in the project directory
         const output = await executeCargoStylusCommand(

@@ -7,228 +7,91 @@ export function registerDevelopmentTools(server: McpServer) {
   // 1. Transaction Simulation
   server.tool(
     "simulateTransaction",
-    "Simulate Arbitrum transaction with state override and comprehensive analysis",
+    "Simulate Arbitrum transaction with basic parameters",
     {
       from: z
         .string()
-        .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address format")
-        .describe("From address (0x...)"),
+        .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid address format")
+        .describe("From address"),
       to: z
         .string()
-        .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address format")
-        .describe("To address (0x...)"),
-      data: z
-        .string()
-        .regex(/^0x[a-fA-F0-9]*$/, "Invalid hex data format")
-        .optional()
-        .describe(
-          "Optional transaction calldata (hex string, e.g., '0x1234...')"
-        ),
+        .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid address format")
+        .describe("To address"),
+      data: z.string().optional().describe("Transaction data (optional)"),
       value: z
         .string()
-        .regex(/^0x[a-fA-F0-9]+$/, "Invalid hex value format")
         .optional()
-        .describe(
-          "Optional value in wei (hex string, e.g., '0x16345785d8a0000')"
-        ),
-      gas: z
-        .string()
-        .regex(/^0x[a-fA-F0-9]+$/, "Invalid hex gas format")
-        .optional()
-        .describe("Optional gas limit (hex string, e.g., '0x5208')"),
-      gasPrice: z
-        .string()
-        .regex(/^0x[a-fA-F0-9]+$/, "Invalid hex gas price format")
-        .optional()
-        .describe("Optional gas price (hex string, e.g., '0x4A817C800')"),
-      maxFeePerGas: z
-        .string()
-        .regex(/^0x[a-fA-F0-9]+$/, "Invalid hex max fee format")
-        .optional()
-        .describe("Optional max fee per gas for EIP-1559 (hex string)"),
-      maxPriorityFeePerGas: z
-        .string()
-        .regex(/^0x[a-fA-F0-9]+$/, "Invalid hex priority fee format")
-        .optional()
-        .describe(
-          "Optional max priority fee per gas for EIP-1559 (hex string)"
-        ),
-      blockIdentifier: z
-        .string()
-        .optional()
-        .describe(
-          "Optional block identifier (number, hash, or 'latest'/'pending')"
-        ),
-      stateOverride: z
-        .record(
-          z.object({
-            balance: z
-              .string()
-              .optional()
-              .describe("Override account balance (hex)"),
-            nonce: z
-              .string()
-              .optional()
-              .describe("Override account nonce (hex)"),
-            code: z.string().optional().describe("Override account code (hex)"),
-            state: z
-              .record(z.string())
-              .optional()
-              .describe("Override storage slots"),
-            stateDiff: z
-              .record(z.string())
-              .optional()
-              .describe("Diff storage slots"),
-          })
-        )
-        .optional()
-        .describe("State overrides for simulation (address -> override)"),
+        .describe("Value in wei as hex string (optional)"),
+      gas: z.string().optional().describe("Gas limit as hex string (optional)"),
     },
-    async ({
-      from,
-      to,
-      data,
-      value,
-      gas,
-      gasPrice,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      blockIdentifier,
-      stateOverride,
-    }) => {
+    async ({ from, to, data, value, gas }) => {
       try {
-        // Build transaction object with only defined fields
-        const transactionDetails: any = { from, to };
+        // Build simple transaction object
+        const tx: {
+          from: string;
+          to: string;
+          data?: string;
+          value?: string;
+          gas?: string;
+        } = { from, to };
 
-        // Only add data if it's provided and not empty
-        if (data && data !== "0x" && data.length > 2) {
-          transactionDetails.data = data;
-        }
+        if (data) tx.data = data;
+        if (value) tx.value = value;
+        if (gas) tx.gas = gas;
 
-        // Add optional fields only if provided
-        if (value) transactionDetails.value = value;
-        if (gas) transactionDetails.gas = gas;
+        // Simulate the transaction
+        const result = await alchemy.transact.simulateAssetChanges(tx);
 
-        // Handle gas pricing (legacy vs EIP-1559)
-        if (maxFeePerGas || maxPriorityFeePerGas) {
-          // EIP-1559 transaction
-          if (maxFeePerGas) transactionDetails.maxFeePerGas = maxFeePerGas;
-          if (maxPriorityFeePerGas)
-            transactionDetails.maxPriorityFeePerGas = maxPriorityFeePerGas;
-          // Don't use gasPrice with EIP-1559
-        } else if (gasPrice) {
-          // Legacy transaction
-          transactionDetails.gasPrice = gasPrice;
-        }
-
-        // Prepare simulation options
-        const simulationOptions: any = {};
-        if (blockIdentifier) {
-          simulationOptions.blockIdentifier = blockIdentifier;
-        }
-        if (stateOverride) {
-          simulationOptions.stateOverride = stateOverride;
-        }
-
-        const simulation = await alchemy.transact.simulateAssetChanges(
-          transactionDetails,
-          Object.keys(simulationOptions).length > 0
-            ? simulationOptions
-            : undefined
-        );
-
-        // Handle simulation errors
-        if (simulation.error && simulation.error.message) {
-          let errorText = `❌ Simulation Error:\n📝 Message: ${simulation.error.message}`;
-
-          if (simulation.error.code) {
-            errorText += `\n🔢 Code: ${simulation.error.code}`;
-          }
-
-          if (simulation.changes && simulation.changes.length > 0) {
-            errorText += `\n\n⚠️ Partial Asset Changes:\n${JSON.stringify(
-              simulation.changes,
-              null,
-              2
-            )}`;
-          }
-
-          if (simulation.gasUsed) {
-            const gasDecimal = parseInt(simulation.gasUsed, 16);
-            errorText += `\n⛽ Gas Used: ${
-              simulation.gasUsed
-            } (${gasDecimal.toLocaleString()} units)`;
-          }
-
+        // Handle errors
+        if (result.error) {
           return {
-            content: [{ type: "text", text: errorText }],
+            content: [
+              {
+                type: "text",
+                text: `❌ Error: ${result.error.message}`,
+              },
+            ],
           };
         }
 
-        // Format successful simulation results
-        let resultText = "✅ Simulation Successful!\n";
+        // Format simple response
+        let response = "✅ Simulation Success\n\n";
 
-        // Add transaction summary
-        resultText += `\n📊 Transaction Summary:`;
-        resultText += `\n  From: ${from}`;
-        resultText += `\n  To: ${to}`;
+        // Basic transaction info
+        response += `From: ${from}\n`;
+        response += `To: ${to}\n`;
+
         if (value) {
-          const valueEth = parseInt(value, 16) / 1e18;
-          resultText += `\n  Value: ${value} (${valueEth} ETH)`;
-        }
-        if (transactionDetails.data) {
-          resultText += `\n  Data: ${transactionDetails.data.slice(0, 42)}${
-            transactionDetails.data.length > 42 ? "..." : ""
-          }`;
+          const ethValue = (parseInt(value, 16) / 1e18).toFixed(4);
+          response += `Value: ${ethValue} ETH\n`;
         }
 
-        // Gas information
-        if (simulation.gasUsed) {
-          const gasDecimal = parseInt(simulation.gasUsed, 16);
-          resultText += `\n\n⛽ Gas Information:`;
-          resultText += `\n  Gas Used: ${
-            simulation.gasUsed
-          } (${gasDecimal.toLocaleString()} units)`;
-
-          // Estimate cost if gas price provided
-          if (gasPrice || maxFeePerGas) {
-            const effectiveGasPrice = gasPrice || maxFeePerGas;
-            if (effectiveGasPrice) {
-              const gasCost = gasDecimal * parseInt(effectiveGasPrice, 16);
-              const gasCostEth = gasCost / 1e18;
-              resultText += `\n  Estimated Cost: ${gasCostEth.toFixed(8)} ETH`;
-            }
-          }
+        // Gas usage
+        if (result.gasUsed) {
+          const gasUsed = parseInt(result.gasUsed, 16).toLocaleString();
+          response += `Gas Used: ${gasUsed}\n`;
         }
 
         // Asset changes
-        if (simulation.changes && simulation.changes.length > 0) {
-          resultText += `\n\n🔄 Asset Changes:`;
-          simulation.changes.forEach((change, index) => {
-            resultText += `\n\n  Change #${index + 1}:`;
-            resultText += `\n${JSON.stringify(change, null, 4)}`;
+        if (result.changes && result.changes.length > 0) {
+          response += `\nAsset Changes: ${result.changes.length} detected\n`;
+          result.changes.forEach((change, i) => {
+            response += `\nChange ${i + 1}:\n`;
+            response += JSON.stringify(change, null, 2);
           });
         } else {
-          resultText += `\n\n🔄 Asset Changes: None detected`;
-        }
-
-        // Add state override info if used
-        if (stateOverride && Object.keys(stateOverride).length > 0) {
-          resultText += `\n\n🔧 State Overrides Applied:`;
-          resultText += `\n${JSON.stringify(stateOverride, null, 2)}`;
+          response += "\nNo asset changes detected";
         }
 
         return {
-          content: [{ type: "text", text: resultText }],
+          content: [{ type: "text", text: response }],
         };
-      } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
+      } catch (error) {
         return {
           content: [
             {
               type: "text",
-              text: `❌ Simulation Failed:\n${errorMessage}\n\n💡 Check that:\n- Addresses are valid (0x format)\n- Hex values are properly formatted\n- The target contract exists\n- Gas limits are sufficient`,
+              text: `❌ Failed: ${handleError(error)}`,
             },
           ],
         };

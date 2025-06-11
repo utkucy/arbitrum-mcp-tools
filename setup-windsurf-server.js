@@ -147,7 +147,7 @@ async function promptUser() {
 
   return new Promise((resolve) => {
     rl.question(
-      "Choose setup type:\n1. Setup Locally (use current project files)\n2. Setup from NPM (install globally)\nEnter your choice (1 or 2): ",
+      "Choose setup type:\n1. Setup Locally (It is recommended if you prefer to customize the tools and load them to LLMs. If you plan to update the tools, choose local setup. Therefore, you can install the tools you customized)\n2. Setup from NPM (Recommended for general use.)\nEnter your choice (1 or 2): ",
       (answer) => {
         rl.close();
         resolve(answer.trim());

@@ -97,8 +97,8 @@ npm run setup-claude
 
 3. When prompted, choose your installation method:
 
-   - Option 1: Setup Locally (use current project files)
-   - Option 2: Setup from NPM (install globally)
+   - Option 1: Setup Locally (It is recommended if you prefer to customize the tools and load them to LLMs.)
+   - Option 2: Setup from NPM (install globally, recommended for general use.)
 
 4. The script will configure Claude to use the Arbitrum MCP tools and additional servers for terminal and file system access.
 

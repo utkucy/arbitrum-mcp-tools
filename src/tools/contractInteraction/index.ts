@@ -390,7 +390,7 @@ export function registerContractInteractionTools(server: McpServer) {
       maxBlocks: z
         .number()
         .optional()
-        .default(500)
+        .default(250)
         .describe("Maximum blocks per query (default: 500)"),
       limit: z
         .number()
@@ -421,7 +421,7 @@ export function registerContractInteractionTools(server: McpServer) {
       eventSignature,
       fromBlock,
       toBlock,
-      maxBlocks = 500,
+      maxBlocks = 250,
       limit = 1000,
       topics,
       autoDiscover = true,
@@ -429,7 +429,7 @@ export function registerContractInteractionTools(server: McpServer) {
     }) => {
       try {
         // Ensure maxBlocks doesn't exceed API limit
-        const safeMaxBlocks = Math.min(maxBlocks, 500);
+        const safeMaxBlocks = Math.min(maxBlocks, 250);
 
         // Get current block
         const currentBlock = await alchemy.core.getBlockNumber();
