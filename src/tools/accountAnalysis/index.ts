@@ -196,7 +196,10 @@ export function registerAccountAnalysisTools(server: McpServer) {
             .optional()
             .describe("Optional page key to use for pagination."),
         })
-        .optional(),
+        .optional()
+        .default({
+          pageSize: 50,
+        }),
     },
     async ({ owner, options }) => {
       try {
@@ -226,6 +229,10 @@ export function registerAccountAnalysisTools(server: McpServer) {
         let responseText = `NFTs owned by ${owner}:\n\n${formattedNfts.join(
           "\n"
         )}`;
+
+        if (nfts.pageKey) {
+          responseText += `\n\nPage Key: ${nfts.pageKey}`;
+        }
 
         return {
           content: [
@@ -331,7 +338,10 @@ export function registerAccountAnalysisTools(server: McpServer) {
               "Optional page key from an existing one to use for pagination."
             ),
         })
-        .optional(),
+        .optional()
+        .default({
+          maxCount: 50,
+        }),
     },
     async ({ address, options }) => {
       try {
