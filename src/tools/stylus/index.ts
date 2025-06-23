@@ -399,33 +399,44 @@ export function registerStylusTools(server: McpServer) {
       try {
         const args = [`--endpoint=${endpoint}`];
 
-        // Get authentication method from environment variables
-        const privateKey = process.env.STYLUS_PRIVATE_KEY;
-        const privateKeyPath = process.env.STYLUS_PRIVATE_KEY_PATH;
-        const keystorePath = process.env.STYLUS_KEYSTORE_PATH;
+        // Only add authentication for subcommands that require it (bid)
+        if (subcommand === "bid") {
+          // Get authentication method from environment variables
+          const privateKey = process.env.STYLUS_PRIVATE_KEY;
+          const privateKeyPath = process.env.STYLUS_PRIVATE_KEY_PATH;
+          const keystorePath = process.env.STYLUS_KEYSTORE_PATH;
 
-        // At least one authentication method must be provided
-        if (privateKey) {
-          args.push(`--private-key=${privateKey}`);
-        } else if (privateKeyPath) {
-          args.push(`--private-key-path=${privateKeyPath}`);
-        } else if (keystorePath) {
-          args.push(`--keystore-path=${keystorePath}`);
-        } else {
-          throw new Error(
-            "Authentication required: Set one of STYLUS_PRIVATE_KEY, STYLUS_PRIVATE_KEY_PATH, or STYLUS_KEYSTORE_PATH environment variables"
-          );
+          // At least one authentication method must be provided for bid
+          if (privateKey) {
+            args.push(`--private-key=${privateKey}`);
+          } else if (privateKeyPath) {
+            args.push(`--private-key-path=${privateKeyPath}`);
+          } else if (keystorePath) {
+            args.push(`--keystore-path=${keystorePath}`);
+          } else {
+            throw new Error(
+              "Authentication required for 'bid' subcommand: Set one of STYLUS_PRIVATE_KEY, STYLUS_PRIVATE_KEY_PATH, or STYLUS_KEYSTORE_PATH environment variables"
+            );
+          }
         }
 
-        // Add contract address
-        args.push(contractAddress);
-
-        // Add bid amount if provided and required
+        // Add positional arguments in the correct order based on subcommand
         if (subcommand === "bid") {
           if (!bidAmount) {
             throw new Error("Bid amount is required for 'bid' subcommand");
           }
+          // For bid: cargo stylus cache bid --endpoint <ENDPOINT> --private-key <KEY> <ADDRESS> <BID>
+          args.push(contractAddress);
           args.push(bidAmount);
+        } else if (subcommand === "suggest-bid") {
+          // For suggest-bid: cargo stylus cache suggest-bid --endpoint <ENDPOINT> <ADDRESS>
+          args.push(contractAddress);
+        } else if (subcommand === "status") {
+          // For status: cargo stylus cache status --endpoint <ENDPOINT>
+          // No additional arguments needed according to the help output
+        } else if (subcommand === "help") {
+          // For help: cargo stylus cache help
+          // No additional arguments needed
         }
 
         // We need to be in the project directory
