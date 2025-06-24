@@ -502,10 +502,6 @@ export function registerContractInteractionTools(server: McpServer) {
 
         // Auto-discovery: if no events found and autoDiscover is enabled
         if (allLogs.length === 0 && autoDiscover && !result.error) {
-          console.log(
-            "No events found in initial range, starting auto-discovery..."
-          );
-
           // Try to find the contract's first transaction to get a better range
           try {
             const txHistory = await alchemy.core.getAssetTransfers({

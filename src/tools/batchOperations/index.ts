@@ -100,14 +100,26 @@ export function registerBatchOperationsTools(server: McpServer) {
           const formattedEthBalance = formatEther(ethBalance.toString());
           const tokens = await Promise.all(
             tokenBalances.tokenBalances.map(async (token) => {
-              const metadata = await alchemy.core.getTokenMetadata(
-                token.contractAddress
-              );
-              return {
-                name: metadata.name || "Unknown",
-                symbol: metadata.symbol || "???",
-                balance: token.tokenBalance || "0",
-              };
+              try {
+                const metadata = await alchemy.core.getTokenMetadata(
+                  token.contractAddress
+                );
+                return {
+                  name: metadata.name || "Unknown",
+                  symbol: metadata.symbol || "???",
+                  balance: token.tokenBalance || "0",
+                } as const;
+              } catch (metadataErr) {
+                // If fetching metadata fails (e.g. unknown contract), fall back to generic values
+                return {
+                  name: "Unknown Token",
+                  symbol: "???",
+                  balance: token.tokenBalance || "0",
+                  // Expose contract address for reference/debugging
+                  contractAddress: token.contractAddress,
+                  error: metadataErr,
+                } as const;
+              }
             })
           );
 
