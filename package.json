@@ -1,6 +1,6 @@
 {
   "name": "arbitrum-mcp-tools",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "main": "./build/src/index.js",
   "author": "Utkucan YILDIRIM @utkucy",
   "type": "module",
@@ -43,7 +43,8 @@
     "watch": "tsc --watch",
     "setup-claude": "npm install && npm run build && node setup-claude-server.js",
     "setup-cursor": "npm install && npm run build && node setup-cursor-server.js",
-    "setup-windsurf": "npm install && npm run build && node setup-windsurf-server.js"
+    "setup-windsurf": "npm install && npm run build && node setup-windsurf-server.js",
+    "setup-gemini": "npm install && npm run build && node setup-gemini-server.js"
   },
   "files": [
     "build"
