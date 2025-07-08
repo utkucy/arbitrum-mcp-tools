@@ -260,6 +260,87 @@ export function registerStylusTools(server: McpServer) {
     }
   );
 
+  // 5.b Deploy multiple Stylus contracts
+  server.tool(
+    "deployMultipleStylusContracts",
+    "Deploy multiple Stylus contracts to the Arbitrum network in sequence. Uses STYLUS_PRIVATE_KEY, STYLUS_PRIVATE_KEY_PATH, or STYLUS_KEYSTORE_PATH from environment variables for authentication.",
+    {
+      endpoint: z.string().describe("RPC endpoint URL"),
+      projectPaths: z
+        .array(z.string())
+        .describe("Array of paths to Stylus projects that should be deployed"),
+      estimateGas: z
+        .boolean()
+        .optional()
+        .describe("Only estimate gas instead of deploying (optional)"),
+    },
+    async ({ endpoint, projectPaths, estimateGas }) => {
+      // Aggregate outputs for all deployments
+      const outputs: string[] = [];
+
+      // Prepare common CLI arguments (endpoint + auth + optional estimate flag)
+      const baseArgs: string[] = [`--endpoint=${endpoint}`];
+
+      // Determine authentication method once
+      const privateKey = process.env.STYLUS_PRIVATE_KEY;
+      const privateKeyPath = process.env.STYLUS_PRIVATE_KEY_PATH;
+      const keystorePath = process.env.STYLUS_KEYSTORE_PATH;
+
+      if (privateKey) {
+        baseArgs.push(`--private-key=${privateKey}`);
+      } else if (privateKeyPath) {
+        baseArgs.push(`--private-key-path=${privateKeyPath}`);
+      } else if (keystorePath) {
+        baseArgs.push(`--keystore-path=${keystorePath}`);
+      } else {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "Authentication required: Set one of STYLUS_PRIVATE_KEY, STYLUS_PRIVATE_KEY_PATH, or STYLUS_KEYSTORE_PATH environment variables",
+            },
+          ],
+        };
+      }
+
+      if (estimateGas) {
+        baseArgs.push("--estimate-gas");
+      }
+
+      // Iterate over each project path and attempt deployment
+      for (const projectPath of projectPaths) {
+        try {
+          const output = await executeCargoStylusCommand(
+            "deploy",
+            projectPath,
+            baseArgs
+          );
+
+          outputs.push(
+            `Project: ${projectPath}\n${
+              estimateGas ? "Gas estimation" : "Deployment"
+            } results:\n${output}`
+          );
+        } catch (error: unknown) {
+          outputs.push(
+            `Project: ${projectPath}\nError ${
+              estimateGas ? "estimating gas" : "deploying"
+            } Stylus contract: ${handleError(error)}`
+          );
+        }
+      }
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: outputs.join("\n\n-----------------------------\n\n"),
+          },
+        ],
+      };
+    }
+  );
+
   // 6. Verify a Stylus contract deployment
   server.tool(
     "verifyStylusContract",
