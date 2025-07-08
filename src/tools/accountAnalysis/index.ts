@@ -395,13 +395,27 @@ export function registerAccountAnalysisTools(server: McpServer) {
           };
         }
 
-        const formattedTxs = transactions.transfers.map(
-          (tx: AssetTransfersResult) =>
-            `Type: ${tx.category}\nFrom: ${tx.from}\nTo: ${
-              tx.to || "Unknown"
-            }\nValue: ${tx.value || "0"} ${tx.asset || "Unknown"}\nHash: ${
-              tx.hash
-            }\n---`
+        // Fetch full transaction data in parallel to get nonce information
+        const formattedTxs = await Promise.all(
+          transactions.transfers.map(async (tx: AssetTransfersResult) => {
+            try {
+              const fullTx = await alchemy.core.getTransaction(tx.hash);
+              const nonce =
+                fullTx?.nonce !== undefined ? fullTx.nonce : "Unknown";
+
+              return `Type: ${tx.category}\nFrom: ${tx.from}\nTo: ${
+                tx.to || "Unknown"
+              }\nValue: ${tx.value || "0"} ${
+                tx.asset || "Unknown"
+              }\nNonce: ${nonce}\nHash: ${tx.hash}\n---`;
+            } catch (_err) {
+              return `Type: ${tx.category}\nFrom: ${tx.from}\nTo: ${
+                tx.to || "Unknown"
+              }\nValue: ${tx.value || "0"} ${
+                tx.asset || "Unknown"
+              }\nNonce: Unknown (failed to fetch)\nHash: ${tx.hash}\n---`;
+            }
+          })
         );
 
         let responseText = `Transaction history for ${address}:\n\n${formattedTxs.join(
@@ -488,6 +502,111 @@ export function registerAccountAnalysisTools(server: McpServer) {
             {
               type: "text",
               text: `Error: ${handleError(error)}`,
+            },
+          ],
+        };
+      }
+    }
+  );
+
+  // 6. Account Protocols Analysis
+  server.tool(
+    "getAccountProtocols",
+    "Analyze which smart contracts (protocols) an address interacts with most frequently.",
+    {
+      address: z
+        .string()
+        .describe("The address to analyze for protocol interactions."),
+      maxResults: z
+        .number()
+        .optional()
+        .default(10)
+        .describe(
+          "Maximum number of top interacted protocol addresses to return. Defaults to 10."
+        ),
+    },
+    async ({ address, maxResults }) => {
+      try {
+        // Helper to fetch transfers (both incoming and outgoing)
+        const fetchTransfers = async (params: Partial<AssetTransfersParams>) =>
+          alchemy.core.getAssetTransfers({
+            fromBlock: "0x0",
+            maxCount: 1000,
+            category: [
+              AssetTransfersCategory.EXTERNAL,
+              AssetTransfersCategory.ERC20,
+              AssetTransfersCategory.ERC721,
+              AssetTransfersCategory.ERC1155,
+            ],
+            ...params,
+          });
+
+        // Fetch outgoing and incoming transfers in parallel
+        const [outgoing, incoming] = await Promise.all([
+          fetchTransfers({ fromAddress: address }),
+          fetchTransfers({ toAddress: address }),
+        ]);
+
+        // Count interactions by contract address
+        const interactionCounts: Record<string, number> = {};
+
+        const addCounter = (addr: string | null | undefined) => {
+          if (!addr) return;
+          const key = addr.toLowerCase();
+          if (key === address.toLowerCase()) return; // skip self
+          interactionCounts[key] = (interactionCounts[key] || 0) + 1;
+        };
+
+        outgoing.transfers.forEach((tx) => addCounter(tx.to));
+        incoming.transfers.forEach((tx) => addCounter(tx.from));
+
+        // Sort by frequency
+        const sorted = Object.entries(interactionCounts).sort(
+          (a, b) => b[1] - a[1]
+        );
+
+        const top = sorted.slice(0, maxResults);
+
+        // Try to enrich with token metadata when available (best-effort)
+        const detailed = await Promise.all(
+          top.map(async ([contractAddress, count]) => {
+            try {
+              const metadata = await alchemy.core.getTokenMetadata(
+                contractAddress
+              );
+              const name = metadata.name || "Unknown Contract";
+              const symbol = metadata.symbol || "";
+              return `${name}${
+                symbol ? ` (${symbol})` : ""
+              } - ${contractAddress} : ${count} interactions`;
+            } catch (_err) {
+              return `${contractAddress} : ${count} interactions`;
+            }
+          })
+        );
+
+        if (detailed.length === 0) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: "No protocol interactions found (or insufficient data)",
+              },
+            ],
+          };
+        }
+
+        const responseText = `Top protocol / contract interactions for ${address} (last 1000 outgoing + 1000 incoming transfers):\n\n${detailed.join(
+          "\n"
+        )}`;
+
+        return { content: [{ type: "text", text: responseText }] };
+      } catch (error: unknown) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error analyzing protocols: ${handleError(error)}`,
             },
           ],
         };

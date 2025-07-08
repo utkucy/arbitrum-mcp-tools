@@ -348,6 +348,7 @@ export function registerContractInteractionTools(server: McpServer) {
         responseText += `⛽ Gas Limit: ${
           txDetails.gasLimit?.toString() || "Unknown"
         }\n`;
+        responseText += `🧮 Nonce: ${txDetails.nonce}\n`;
         responseText += `👤 From Address: ${txDetails.from || "Unknown"}\n`;
 
         return {

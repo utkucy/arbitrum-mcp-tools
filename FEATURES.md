@@ -74,6 +74,14 @@ Tools for analyzing accounts, balances, and tokens.
        - `tokenUriTimeoutInMs`: Timeout for metadata fetch
        - `refreshCache`: Refresh metadata before response (false default)
 
+6. **`getAccountProtocols`** - Analyze which smart contracts (protocols) an address interacts with most frequently.
+
+   [Demo](https://drive.google.com/) <!-- TODO: update with actual demo link -->
+
+   - **Parameters:**
+     - `address`: The address to analyze for protocol interactions
+     - `maxResults`: Maximum number of top interacted protocol addresses to return (optional, default: 10)
+
 ---
 
 ## 2. Chain Data

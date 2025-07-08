@@ -37,6 +37,7 @@ export function registerBatchOperationsTools(server: McpServer) {
               const metadata = await alchemy.core.getTokenMetadata(
                 tokenAddress
               );
+
               const name = metadata.name || "Unknown Token";
               const symbol = metadata.symbol || "???";
 
