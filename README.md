@@ -10,6 +10,7 @@ This project provides a set of tools for interacting with the Arbitrum blockchai
   - [Setup for Cursor](#setup-for-cursor)
   - [Setup for Claude](#setup-for-claude)
   - [Setup for Windsurf](#setup-for-windsurf)
+  - [Setup for Gemini](#setup-for-gemini)
 - [Usage](#usage)
   - [Available Tools](#available-tools)
   - [Example Usage](#example-usage)
@@ -59,7 +60,7 @@ Replace the values with your actual API keys and authentication details:
 
 - `ALCHEMY_API_KEY` is required for most tools to work correctly
 - `ARBISCAN_API_KEY` is used by the `decodeTransactionCalldata` tool to fetch contract ABIs from Arbiscan; if not provided, this specific tool will return an error prompting you to set the key
-- For Stylus tools (`deployStylusContract`, `activateStylusContract`), you need to set **one** of the three authentication methods:
+- For Stylus tools (`deployStylusContract`, `deployMultipleStylusContracts`, `activateStylusContract`), you need to set **one** of the three authentication methods:
   - `STYLUS_PRIVATE_KEY`: Direct private key (quick but less secure)
   - `STYLUS_PRIVATE_KEY_PATH`: Path to a file containing your private key (more secure)
   - `STYLUS_KEYSTORE_PATH`: Path to an encrypted keystore file (most secure, will prompt for password)
@@ -126,6 +127,27 @@ npm run setup-windsurf
 5. Restart Windsurf to apply the changes.
 
 Note: The setup script will automatically use the Alchemy API key from your `.env` file to configure the MCP tools.
+
+### Setup for Gemini 💫
+
+1. Install the Gemini desktop application if you haven't already.
+
+2. Run the setup script:
+
+```bash
+npm run setup-gemini
+```
+
+3. When prompted, choose your installation method:
+
+   - **Option 1:** Setup Locally (recommended if you plan to customize the tools)
+   - **Option 2:** Setup from NPM (install globally, recommended for general use)
+
+4. The script will configure Gemini to use the Arbitrum MCP tools and will also install additional servers for desktop control and file-system access.
+
+5. Restart Gemini to apply the changes.
+
+> **Note**: The setup script will automatically use the Alchemy API key from your `.env` file to configure the MCP tools.
 
 ## Usage 🎮
 
@@ -218,27 +240,49 @@ export async function myNewTool(params: { param1: string; param2: string }) {
 
 ### Tool Registration 🏷️
 
-1. Register your tool in the category's index.ts file:
+**Arbitrum MCP Tools uses an active registration pattern** – every tool is registered at runtime with `server.tool(...)`. To add a new tool you need to:
+
+1. **Add the tool to its category’s `registerXTools` function**
 
 ```typescript
 // src/tools/myCategory/index.ts
-export { myNewTool } from "./myNewTool";
+import { z } from "zod";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+
+export function registerMyCategoryTools(server: McpServer) {
+  server.tool(
+    "myNewTool", // unique name
+    "Short description of what it does", // description
+    {
+      param1: z.string().describe("Example parameter"),
+    },
+    async ({ param1 }) => {
+      // TOOL LOGIC ⤵️
+      return {
+        content: [{ type: "text", text: `You sent ${param1}` }],
+      };
+    }
+  );
+}
 ```
 
-2. Register the category in the main tools index file if it's a new category:
+2. **Hook the category into the global registry**
+
+Add (or update) the import in `src/tools/index.ts` and call the register function inside `registerAllTools`:
 
 ```typescript
 // src/tools/index.ts
-import * as myCategory from "./myCategory";
+import { registerMyCategoryTools } from "./myCategory/index.js";
 
-// Add your category to the exported tools
-export const tools = {
-  // ... existing categories
-  myCategory,
-};
+export function registerAllTools(server: McpServer) {
+  // …existing categories
+  registerMyCategoryTools(server);
+}
 ```
 
-3. Update the MCPServer configuration in `src/index.ts` if needed.
+That’s it – when the MCP server starts, every `registerXTools` function runs and your new tool becomes available immediately.
+
+---
 
 ### Testing Your Tools 🧪
 

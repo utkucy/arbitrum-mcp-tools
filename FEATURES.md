@@ -346,3 +346,13 @@ Tools for Stylus development and interaction.
       - `txHash`: Transaction hash to trace
       - `endpoint`: RPC endpoint URL (optional)
       - `path`: Path to the Stylus project (optional)
+
+12. **`deployMultipleStylusContracts`** - Deploy multiple Stylus contracts to the Arbitrum network in sequence
+
+    [Demo](https://drive.google.com/) <!-- TODO: update with actual demo link -->
+
+    - **Parameters:**
+      - `endpoint`: RPC endpoint URL
+      - `projectPaths`: Array of paths to Stylus projects that should be deployed
+      - `estimateGas`: Only estimate gas instead of deploying (optional boolean)
+      - Uses `STYLUS_PRIVATE_KEY`, `STYLUS_PRIVATE_KEY_PATH`, or `STYLUS_KEYSTORE_PATH` environment variables for authentication.
