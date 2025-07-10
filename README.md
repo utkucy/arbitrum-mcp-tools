@@ -128,9 +128,9 @@ npm run setup-windsurf
 
 Note: The setup script will automatically use the Alchemy API key from your `.env` file to configure the MCP tools.
 
-### Setup for Gemini 💫
+### Setup for Gemini CLI 💫
 
-1. Install the Gemini desktop application if you haven't already.
+1. Install the Gemini CLI application if you haven't already.
 
 2. Run the setup script:
 
@@ -219,26 +219,6 @@ src/
 ```
 
 ### Adding New Tools 🛠️
-
-1. Create a new file in the appropriate category folder or create a new category folder if needed.
-
-2. Implement your tool following this template:
-
-```typescript
-import { AlchemyProvider } from "ethers";
-import { getProvider } from "../common";
-
-export async function myNewTool(params: { param1: string; param2: string }) {
-  const { param1, param2 } = params;
-  const provider = getProvider();
-
-  // Your tool logic here
-
-  return result;
-}
-```
-
-### Tool Registration 🏷️
 
 **Arbitrum MCP Tools uses an active registration pattern** – every tool is registered at runtime with `server.tool(...)`. To add a new tool you need to:
 
