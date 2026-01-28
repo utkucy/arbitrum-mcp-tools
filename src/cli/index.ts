@@ -76,6 +76,7 @@ ${chalk.yellow("Supported Platforms:")}
   • Windsurf
   • VS Code
   • Gemini CLI
+  • Antigravity
   • OpenAI Codex
 
 ${chalk.gray("For more information, visit:")}

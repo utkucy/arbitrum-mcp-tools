@@ -77,6 +77,17 @@ export const platforms: Record<string, PlatformConfig> = {
     },
     local: ".gemini/settings.json",
   },
+  antigravity: {
+    name: "Antigravity",
+    format: "json",
+    configKey: "mcpServers",
+    global: {
+      darwin: "~/.gemini/antigravity/mcp_config.json",
+      win32: "%USERPROFILE%/.gemini/antigravity/mcp_config.json",
+      linux: "~/.gemini/antigravity/mcp_config.json",
+    },
+    local: ".antigravity/mcp_config.json",
+  },
   codex: {
     name: "OpenAI Codex",
     format: "toml",

@@ -8,7 +8,7 @@ This document provides a comprehensive list of all available tools in the Arbitr
 npx arbitrum-mcp-tools install
 ```
 
-Supports: Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, Gemini CLI, and OpenAI Codex.
+Supports: Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, Gemini CLI, Antigravity, and OpenAI Codex.
 
 ## Feature Categories
 

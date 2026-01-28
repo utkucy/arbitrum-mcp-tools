@@ -70,6 +70,9 @@ export function isAppInstalled(appName: string): boolean {
     case "gemini":
       return directoryExists(`${getHomeDir()}/.gemini`);
 
+    case "antigravity":
+      return directoryExists(`${getHomeDir()}/.gemini/antigravity`);
+
     case "codex":
       return directoryExists(`${getHomeDir()}/.codex`);
 

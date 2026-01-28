@@ -1,6 +1,6 @@
 # Arbitrum MCP Tools 🚀🦾
 
-This project provides a set of tools for interacting with the Arbitrum blockchain via the Model Context Protocol (MCP), enabling AI assistants like Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, Gemini CLI, and OpenAI Codex to perform blockchain operations.
+This project provides a set of tools for interacting with the Arbitrum blockchain via the Model Context Protocol (MCP), enabling AI assistants like Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, Gemini CLI, Antigravity, and OpenAI Codex to perform blockchain operations.
 
 ## Table of Contents 📚
 
@@ -32,7 +32,7 @@ This launches an interactive wizard that guides you through the setup process.
 
 ## Supported Platforms 🖥️
 
-Arbitrum MCP Tools supports **7 platforms** across macOS, Windows, and Linux:
+Arbitrum MCP Tools supports **8 platforms** across macOS, Windows, and Linux:
 
 | Platform | Format | Status |
 |----------|--------|--------|
@@ -42,6 +42,7 @@ Arbitrum MCP Tools supports **7 platforms** across macOS, Windows, and Linux:
 | Windsurf | JSON | ✅ Supported |
 | VS Code | JSON | ✅ Supported |
 | Gemini CLI | JSON | ✅ Supported |
+| Antigravity | JSON | ✅ Supported |
 | OpenAI Codex | TOML | ✅ Supported |
 
 ## Environment Variables 🔐
