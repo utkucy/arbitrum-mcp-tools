@@ -2,7 +2,7 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { formatEther } from "ethers";
 import { handleError, formatTokenBalance } from "../common.js";
-import { alchemy } from "../../index.js";
+import { alchemy } from "../../server.js";
 import { AssetTransfersCategory } from "alchemy-sdk";
 
 export function registerBatchOperationsTools(server: McpServer) {

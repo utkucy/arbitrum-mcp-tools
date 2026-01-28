@@ -1,5 +1,5 @@
 import fs from "fs";
-import { getPackagePath, ensureDirectoryExists } from "../../utils/paths.js";
+import { ensureDirectoryExists } from "../../utils/paths.js";
 
 export interface McpServerConfig {
   command: string;
@@ -30,13 +30,11 @@ export function writeJsonConfig(filePath: string, config: JsonConfig): void {
 }
 
 export function generateMcpServerEntry(): McpServerConfig {
-  const serverPath = getPackagePath();
-
-  // Don't include env vars in config - server reads from process.env
-  // This ensures cross-platform compatibility
+  // Use npx to run the MCP server from npm package
+  // This ensures the server is always run from the installed package
   return {
-    command: "node",
-    args: [serverPath],
+    command: "npx",
+    args: ["-y", "arbitrum-mcp-tools", "serve"],
   };
 }
 

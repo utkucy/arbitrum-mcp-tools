@@ -2,7 +2,7 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ethers, Interface } from "ethers";
 import { handleError } from "../common.js";
-import { alchemy } from "../../index.js";
+import { alchemy } from "../../server.js";
 import { AssetTransfersCategory, SortingOrder } from "alchemy-sdk";
 
 // Types for better TypeScript support

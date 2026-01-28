@@ -1,6 +1,5 @@
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
 import { getPlatform, getHomeDir } from "./platform.js";
 
 export function resolvePath(pathTemplate: string): string {
@@ -39,17 +38,6 @@ export function getGlobalConfigPath(globalPaths: Record<string, string>): string
   }
 
   return resolvePath(pathTemplate);
-}
-
-export function getPackagePath(): string {
-  // Get the path to the arbitrum-mcp-tools MCP server entry point
-  // Using fileURLToPath for proper cross-platform path handling (especially Windows)
-  const currentFilePath = fileURLToPath(import.meta.url);
-  const currentDir = path.dirname(currentFilePath);
-
-  // Navigate from build/src/cli/utils to build/src/index.js
-  const buildSrcDir = path.resolve(currentDir, "../..");
-  return path.join(buildSrcDir, "index.js");
 }
 
 export function ensureDirectoryExists(filePath: string): void {

@@ -4,6 +4,7 @@ import chalk from "chalk";
 import { installCommand } from "./commands/install.js";
 import { uninstallCommand } from "./commands/uninstall.js";
 import { listCommand } from "./commands/list.js";
+import { serveCommand } from "./commands/serve.js";
 
 const VERSION = "2.0.0";
 
@@ -22,6 +23,10 @@ async function main(): Promise<void> {
 
     case "list":
       await listCommand();
+      break;
+
+    case "serve":
+      await serveCommand();
       break;
 
     case "--version":
@@ -54,6 +59,7 @@ ${chalk.yellow("Commands:")}
   ${chalk.green("install")}     Interactive installation wizard
   ${chalk.green("uninstall")}   Interactive uninstall wizard
   ${chalk.green("list")}        Show supported platforms and installation status
+  ${chalk.green("serve")}       Start the MCP server (used by MCP clients)
 
 ${chalk.yellow("Options:")}
   ${chalk.green("--version, -v")}   Show version number

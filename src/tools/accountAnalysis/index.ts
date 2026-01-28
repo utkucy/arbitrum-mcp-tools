@@ -2,7 +2,7 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { formatEther } from "ethers";
 import { formatTokenBalance, handleError } from "../common.js";
-import { alchemy } from "../../index.js";
+import { alchemy } from "../../server.js";
 import {
   AssetTransfersCategory,
   AssetTransfersResult,

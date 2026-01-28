@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { handleError } from "../common.js";
-import { alchemy } from "../../index.js";
+import { alchemy } from "../../server.js";
 
 export function registerDevelopmentTools(server: McpServer) {
   // 1. Transaction Simulation

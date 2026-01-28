@@ -2,7 +2,7 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { formatEther } from "ethers";
 import { handleError } from "../common.js";
-import { alchemy } from "../../index.js";
+import { alchemy } from "../../server.js";
 
 export function registerChainDataTools(server: McpServer) {
   // 1. Block Number
