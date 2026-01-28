@@ -1,159 +1,121 @@
 # Arbitrum MCP Tools 🚀🦾
 
-This project provides a set of tools for interacting with the Arbitrum blockchain via the Model Context Protocol (MCP), enabling AI assistants like Claude, Cursor, and Windsurf to perform blockchain operations.
+This project provides a set of tools for interacting with the Arbitrum blockchain via the Model Context Protocol (MCP), enabling AI assistants like Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, Gemini CLI, and OpenAI Codex to perform blockchain operations.
 
 ## Table of Contents 📚
 
-- [Setup Guide](#setup-guide)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Setup for Cursor](#setup-for-cursor)
-  - [Setup for Claude](#setup-for-claude)
-  - [Setup for Windsurf](#setup-for-windsurf)
-  - [Setup for Gemini](#setup-for-gemini)
-- [Usage](#usage)
-  - [Available Tools](#available-tools)
-  - [Example Usage](#example-usage)
+- [Quick Start](#quick-start)
+- [Prerequisites](#prerequisites)
+- [Supported Platforms](#supported-platforms)
+- [Environment Variables](#environment-variables)
+- [CLI Commands](#cli-commands)
+- [Available Tools](#available-tools)
+- [Example Usage](#example-usage)
 - [Development Guide](#development-guide)
-  - [Project Structure](#project-structure)
-  - [Adding New Tools](#adding-new-tools)
-  - [Tool Registration](#tool-registration)
-  - [Testing Your Tools](#testing-your-tools)
 
-## Setup Guide 🛠️
+## Quick Start 🚀
 
-### Prerequisites 📝
+Install Arbitrum MCP Tools to your AI assistant with a single command:
+
+```bash
+npx arbitrum-mcp-tools install
+```
+
+This launches an interactive wizard that guides you through the setup process.
+
+## Prerequisites 📝
 
 - Node.js v20.x or higher
-- npm or yarn
-- Git
+- npm (comes with Node.js)
 - Alchemy API Key (sign up at https://www.alchemy.com/)
-- Arbiscan API Key (sign up at https://arbiscan.io). This is optional but recommended for the `decodeTransactionCalldata` tool which uses it to fetch contract ABIs.
+- Arbiscan API Key (optional, sign up at https://arbiscan.io) - Required for the `decodeTransactionCalldata` tool
 
-### Installation 🧑‍💻
+## Supported Platforms 🖥️
 
-1. Clone the repository:
+Arbitrum MCP Tools supports **7 platforms** across macOS, Windows, and Linux:
+
+| Platform | Format | Status |
+|----------|--------|--------|
+| Claude Desktop | JSON | ✅ Supported |
+| Claude Code | JSON | ✅ Supported |
+| Cursor | JSON | ✅ Supported |
+| Windsurf | JSON | ✅ Supported |
+| VS Code | JSON | ✅ Supported |
+| Gemini CLI | JSON | ✅ Supported |
+| OpenAI Codex | TOML | ✅ Supported |
+
+## Environment Variables 🔐
+
+Set these environment variables in your shell profile (`~/.zshrc` or `~/.bashrc`):
 
 ```bash
-git clone https://github.com/utkucy/arbitrum-mcp-tools.git
-cd arbitrum-mcp-tools
-```
+# Required
+export ALCHEMY_API_KEY="your_alchemy_api_key_here"
 
-2. Create a `.env` file in the project root with your API keys and configuration:
-
-```bash
-ALCHEMY_API_KEY=your_alchemy_api_key_here
-ARBISCAN_API_KEY=your_arbiscan_api_key_here
+# Optional (for transaction decoding)
+export ARBISCAN_API_KEY="your_arbiscan_api_key_here"
 
 # Stylus Contract Authentication (choose one method)
-# Option 1: Direct private key (least secure, not recommended for production)
-STYLUS_PRIVATE_KEY=your_private_key_here
+# Option 1: Direct private key
+export STYLUS_PRIVATE_KEY="your_private_key_here"
 
-# Option 2: Path to private key file (more secure)
-STYLUS_PRIVATE_KEY_PATH=/path/to/your/private/key/file
+# Option 2: Path to private key file
+export STYLUS_PRIVATE_KEY_PATH="/path/to/your/private/key/file"
 
-# Option 3: Path to keystore file (most secure, requires password prompt)
-STYLUS_KEYSTORE_PATH=/path/to/your/keystore/file
+# Option 3: Path to keystore file (most secure)
+export STYLUS_KEYSTORE_PATH="/path/to/your/keystore/file"
 ```
 
-Replace the values with your actual API keys and authentication details:
+Then reload your shell: `source ~/.zshrc`
 
-- `ALCHEMY_API_KEY` is required for most tools to work correctly
-- `ARBISCAN_API_KEY` is used by the `decodeTransactionCalldata` tool to fetch contract ABIs from Arbiscan; if not provided, this specific tool will return an error prompting you to set the key
-- For Stylus tools (`deployStylusContract`, `deployMultipleStylusContracts`, `activateStylusContract`), you need to set **one** of the three authentication methods:
-  - `STYLUS_PRIVATE_KEY`: Direct private key (quick but less secure)
-  - `STYLUS_PRIVATE_KEY_PATH`: Path to a file containing your private key (more secure)
-  - `STYLUS_KEYSTORE_PATH`: Path to an encrypted keystore file (most secure, will prompt for password)
+### Windows (PowerShell)
 
-3. Run one of the setup scripts as described in the sections below. The scripts will automatically install dependencies and build the project.
+```powershell
+[Environment]::SetEnvironmentVariable("ALCHEMY_API_KEY", "your_key_here", "User")
+```
 
-### Setup for Cursor 🖱️
+## CLI Commands 🛠️
 
-1. Run the setup script:
+### install
+
+Interactive installation wizard for setting up MCP tools.
 
 ```bash
-npm run setup-cursor
+npx arbitrum-mcp-tools install
 ```
 
-2. When prompted, choose your installation method:
+### uninstall
 
-   - Option 1: Setup Locally (use current project files)
-   - Option 2: Setup from NPM (install globally)
-
-3. The script will configure Cursor to use the Arbitrum MCP tools.
-
-4. Restart Cursor to apply the changes.
-
-Note: The setup script will automatically use the Alchemy API key from your `.env` file to configure the MCP tools.
-
-### Setup for Claude 🤖
-
-1. Install Claude desktop application if you haven't already.
-
-2. Run the setup script:
+Remove MCP tools from selected platforms.
 
 ```bash
-npm run setup-claude
+npx arbitrum-mcp-tools uninstall
 ```
 
-3. When prompted, choose your installation method:
+### list
 
-   - Option 1: Setup Locally (It is recommended if you prefer to customize the tools and load them to LLMs.)
-   - Option 2: Setup from NPM (install globally, recommended for general use.)
-
-4. The script will configure Claude to use the Arbitrum MCP tools and additional servers for terminal and file system access.
-
-5. Restart Claude to apply the changes.
-
-Note: The setup script will automatically use the Alchemy API key from your `.env` file to configure the MCP tools.
-
-### Setup for Windsurf 🌊🪁
-
-1. Install Windsurf application if you haven't already.
-
-2. Run the setup script:
+Display all supported platforms and their installation status.
 
 ```bash
-npm run setup-windsurf
+npx arbitrum-mcp-tools list
 ```
 
-3. When prompted, choose your installation method:
+### serve
 
-   - Option 1: Setup Locally (use current project files)
-   - Option 2: Setup from NPM (install globally)
-
-4. The script will configure Windsurf to use the Arbitrum MCP tools.
-
-5. Restart Windsurf to apply the changes.
-
-Note: The setup script will automatically use the Alchemy API key from your `.env` file to configure the MCP tools.
-
-### Setup for Gemini CLI 💫
-
-1. Install the Gemini CLI application if you haven't already.
-
-2. Run the setup script:
+Start the MCP server (used internally by MCP clients).
 
 ```bash
-npm run setup-gemini
+npx arbitrum-mcp-tools serve
 ```
 
-3. When prompted, choose your installation method:
+### --help / --version
 
-   - **Option 1:** Setup Locally (recommended if you plan to customize the tools)
-   - **Option 2:** Setup from NPM (install globally, recommended for general use)
+```bash
+npx arbitrum-mcp-tools --help
+npx arbitrum-mcp-tools --version
+```
 
-4. The script will configure Gemini to use the Arbitrum MCP tools and will also install additional servers for desktop control and file-system access.
-
-5. Restart Gemini to apply the changes.
-
-> **Note**: The setup script will automatically use the Alchemy API key from your `.env` file to configure the MCP tools.
-
-## Usage 🎮
-
-Once set up, the Arbitrum MCP tools will be available to your AI assistant. The tools are categorized by functionality and can be accessed through natural language.
-
-### Available Tools 🧰
+## Available Tools 🧰
 
 The tools are organized into several categories:
 
@@ -161,51 +123,36 @@ The tools are organized into several categories:
 2. **Chain Data** - Tools for retrieving blockchain data like blocks and transactions
 3. **Contract Interaction** - Tools for interacting with smart contracts
 4. **Cross-Chain** - Tools for cross-chain operations
-5. **Development** - Tools for developers
+5. **Development** - Tools for developers (simulation, gas estimation)
 6. **Batch Operations** - Tools for performing operations on multiple addresses
-7. **Stylus** - Tools for Stylus development and interaction
+7. **Stylus** - Tools for Stylus development and deployment
 
-### Tool Documentation Links 🔗
+For a detailed list of all tools, see the [Feature Matrix](./FEATURES.md).
 
-For more detailed information on the underlying APIs and technologies used by these tools, please refer to the following resources:
+## Example Usage 📝
 
-- **Alchemy SDK**: [Alchemy SDK Quickstart](https://www.alchemy.com/docs/reference/alchemy-sdk-quickstart)
-  - [SDK Core Methods](https://www.alchemy.com/docs/reference/sdk-core-methods)
-  - [SDK NFT Methods](https://www.alchemy.com/docs/reference/sdk-nft-methods)
-  - [SDK Transact Methods](https://www.alchemy.com/docs/reference/sdk-transact-methods)
-- **Arbitrum Stylus**: [Stylus CLI Usage](https://docs.arbitrum.io/stylus/using-cli#using-cargo-stylus)
-
-### Example Usage 📝
-
-When using Claude, Cursor, or Windsurf, you can simply ask for blockchain data using natural language. The AI will determine which tool to use.
-
-Examples:
+When using any supported AI assistant, you can simply ask for blockchain data using natural language:
 
 - "What's the ETH balance of 0x123...?"
 - "Check NFTs owned by 0xabc..."
 - "How much gas is needed to transfer 1 ETH?"
 - "Show me the latest block on Arbitrum"
 - "Decode this transaction input data: 0x..."
-
-Each tool handles specific parameters. For example, to get an account balance:
-
-```
-Input: "What's the balance of 0x742d35Cc6634C0532925a3b844Bc454e4438f44e?"
-
-The AI uses: getAccountBalance({ address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" })
-
-Output: "The account has 1.23 ETH"
-```
+- "Deploy my Stylus contract to Arbitrum Sepolia"
 
 ## Development Guide 🏗️
 
 ### Project Structure 🗂️
 
-The codebase is organized into modular components:
-
 ```
 src/
-├── index.ts                # Main entry point
+├── index.ts                # Entry point (runs server)
+├── server.ts               # MCP server setup and Alchemy config
+├── cli/                    # CLI installer
+│   ├── index.ts            # CLI entry point
+│   ├── commands/           # CLI commands (install, uninstall, list, serve)
+│   ├── clients/            # Platform config generators
+│   └── utils/              # CLI utilities
 ├── tools/                  # All tools organized by category
 │   ├── common.ts           # Shared utilities and configs
 │   ├── index.ts            # Tool registration
@@ -220,9 +167,9 @@ src/
 
 ### Adding New Tools 🛠️
 
-**Arbitrum MCP Tools uses an active registration pattern** – every tool is registered at runtime with `server.tool(...)`. To add a new tool you need to:
+**Arbitrum MCP Tools uses an active registration pattern** – every tool is registered at runtime with `server.tool(...)`. To add a new tool:
 
-1. **Add the tool to its category’s `registerXTools` function**
+1. **Add the tool to its category's `registerXTools` function**
 
 ```typescript
 // src/tools/myCategory/index.ts
@@ -231,13 +178,12 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 export function registerMyCategoryTools(server: McpServer) {
   server.tool(
-    "myNewTool", // unique name
-    "Short description of what it does", // description
+    "myNewTool",
+    "Short description of what it does",
     {
       param1: z.string().describe("Example parameter"),
     },
     async ({ param1 }) => {
-      // TOOL LOGIC ⤵️
       return {
         content: [{ type: "text", text: `You sent ${param1}` }],
       };
@@ -247,8 +193,6 @@ export function registerMyCategoryTools(server: McpServer) {
 ```
 
 2. **Hook the category into the global registry**
-
-Add (or update) the import in `src/tools/index.ts` and call the register function inside `registerAllTools`:
 
 ```typescript
 // src/tools/index.ts
@@ -260,29 +204,37 @@ export function registerAllTools(server: McpServer) {
 }
 ```
 
-That’s it – when the MCP server starts, every `registerXTools` function runs and your new tool becomes available immediately.
-
----
-
 ### Testing Your Tools 🧪
 
-1. Build the project after making changes:
+1. Build the project:
 
 ```bash
 npm run build
 ```
 
-2. Test your tools by selecting the local setup option for the following commands:
+2. Test the MCP server directly:
 
 ```bash
-npm run setup-cursor | setup-windsurf | setup-claude
+node build/src/index.js
 ```
 
-3. If you're making significant changes, consider updating the setup scripts to ensure they handle your new tools correctly.
+3. For testing with an AI assistant, temporarily modify your platform's config to point to the local build:
 
-## Feature Matrix 🧮
+```json
+{
+  "mcpServers": {
+    "arbitrum": {
+      "command": "node",
+      "args": ["/path/to/arbitrum-mcp-tools/build/src/index.js"]
+    }
+  }
+}
+```
 
-For a detailed list of all available tools and their capabilities, see the [Feature Matrix](./FEATURES.md).
+## Tool Documentation Links 🔗
+
+- **Alchemy SDK**: [Alchemy SDK Quickstart](https://www.alchemy.com/docs/reference/alchemy-sdk-quickstart)
+- **Arbitrum Stylus**: [Stylus CLI Usage](https://docs.arbitrum.io/stylus/using-cli#using-cargo-stylus)
 
 ## Contributing 🙌
 

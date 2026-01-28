@@ -2,6 +2,14 @@
 
 This document provides a comprehensive list of all available tools in the Arbitrum MCP Tools project, organized by category.
 
+## Quick Start
+
+```bash
+npx arbitrum-mcp-tools install
+```
+
+Supports: Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, Gemini CLI, and OpenAI Codex.
+
 ## Feature Categories
 
 The tools are categorized according to the following feature matrix:
