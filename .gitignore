@@ -5,3 +5,5 @@
 /claude-setup.log
 /windsurf-setup.log
 /setup.log
+.npmrc
+.mcp.json

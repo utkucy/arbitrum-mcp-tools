@@ -1,6 +1,6 @@
 {
   "name": "arbitrum-mcp-tools",
-  "version": "1.0.13",
+  "version": "2.0.0",
   "main": "./build/src/index.js",
   "author": "Utkucan YILDIRIM @utkucy",
   "type": "module",
@@ -17,6 +17,9 @@
     "claude",
     "cursor",
     "windsurf",
+    "vscode",
+    "gemini",
+    "codex",
     "ai-tools",
     "alchemy",
     "stylus",
@@ -32,19 +35,15 @@
     "sdk"
   ],
   "license": "ISC",
-  "description": "A comprehensive collection of Model Context Protocol (MCP) tools for interacting with the Arbitrum blockchain. Enables AI assistants like Claude, Cursor, and Windsurf to perform blockchain operations including account analysis, contract interaction, cross-chain operations, Stylus development, and more. Features tools for checking balances, analyzing transactions, decoding contract calls, managing NFTs, and deploying Stylus contracts.",
+  "description": "A comprehensive collection of Model Context Protocol (MCP) tools for interacting with the Arbitrum blockchain. Enables AI assistants like Claude, Cursor, Windsurf, VS Code, Gemini CLI, and OpenAI Codex to perform blockchain operations including account analysis, contract interaction, cross-chain operations, Stylus development, and more. Features an interactive CLI installer for easy setup across all major MCP-compatible platforms.",
   "private": false,
   "bin": {
-    "arbitrum-mcp-tools2": "./build/src/index.js"
+    "arbitrum-mcp-tools": "./build/src/cli/index.js"
   },
   "scripts": {
-    "build": "tsc && shx chmod +x build/src/*.js",
+    "build": "tsc && shx chmod +x build/src/*.js build/src/cli/*.js",
     "prepare": "npm run build",
-    "watch": "tsc --watch",
-    "setup-claude": "npm install && npm run build && node setup-claude-server.js",
-    "setup-cursor": "npm install && npm run build && node setup-cursor-server.js",
-    "setup-windsurf": "npm install && npm run build && node setup-windsurf-server.js",
-    "setup-gemini": "npm install && npm run build && node setup-gemini-server.js"
+    "watch": "tsc --watch"
   },
   "files": [
     "build"
@@ -55,8 +54,12 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
+    "@iarna/toml": "^2.2.5",
+    "@inquirer/prompts": "^8.2.0",
     "@modelcontextprotocol/sdk": "^1.4.0",
     "alchemy-sdk": "^3.5.3",
+    "boxen": "^8.0.1",
+    "chalk": "^5.6.2",
     "dotenv": "^16.4.7",
     "ethers": "^6.13.5"
   }
