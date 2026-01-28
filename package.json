@@ -1,6 +1,6 @@
 {
   "name": "arbitrum-mcp-tools",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "main": "./build/src/index.js",
   "author": "Utkucan YILDIRIM @utkucy",
   "type": "module",

@@ -11,6 +11,7 @@ export interface TomlMcpServer {
   args: string[];
   enabled?: boolean;
   env?: Record<string, string>;
+  env_vars?: string[];
 }
 
 export function readTomlConfig(filePath: string): TomlConfig {
@@ -34,10 +35,21 @@ export function writeTomlConfig(filePath: string, config: TomlConfig): void {
 export function generateTomlMcpServerEntry(): TomlMcpServer {
   // Use npx to run the MCP server from npm package
   // This ensures the server is always run from the installed package
+  //
+  // Codex sandboxes environment variables by default (unlike Claude Code)
+  // Use env_vars to forward specific variables from shell to MCP server
+  // This is more secure than hardcoding values in config
   return {
     command: "npx",
     args: ["-y", "arbitrum-mcp-tools", "serve"],
     enabled: true,
+    env_vars: [
+      "ALCHEMY_API_KEY",
+      "ARBISCAN_API_KEY",
+      "STYLUS_PRIVATE_KEY",
+      "STYLUS_PRIVATE_KEY_PATH",
+      "STYLUS_KEYSTORE_PATH",
+    ],
   };
 }
 

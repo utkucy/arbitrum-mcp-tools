@@ -32,6 +32,9 @@ export function writeJsonConfig(filePath: string, config: JsonConfig): void {
 export function generateMcpServerEntry(): McpServerConfig {
   // Use npx to run the MCP server from npm package
   // This ensures the server is always run from the installed package
+  //
+  // JSON-based platforms (Claude, Cursor, etc.) inherit shell environment
+  // so no need to explicitly pass env vars
   return {
     command: "npx",
     args: ["-y", "arbitrum-mcp-tools", "serve"],
